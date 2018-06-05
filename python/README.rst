@@ -34,12 +34,12 @@ This file can be used to install all the requirements with the following command
 
 Environment variables.
 ----------------------
-The code will have to connect to your ftrack server.
-We do expect therefore, to be able to find some basic `environment variable <http://ftrack-python-api.rtd.ftrack.com/en/stable/environment_variables.html?highlight=environment>`_.
+As the code will have to connect to your ftrack server, in order to work,
+we do expect, to be able to find some basic `environment variable <http://ftrack-python-api.rtd.ftrack.com/en/stable/environment_variables.html?highlight=environment>`_ set.
 
 * FTRACK_SERVER : the address of your ftrack server
 * FTRACK_API_USER: the username to be used to authenticate to the server
-* FTRAcK_API_KEY: user's api key to authenticate to the server
+* FTRACK_API_KEY: user's api key to authenticate to the server
 
 
 Run as standalone.

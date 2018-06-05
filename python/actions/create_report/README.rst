@@ -19,3 +19,10 @@ Scope
 Install and setup
 -----------------
 Please refer to the main ftrack-recipes python guide. 
+
+
+Dependencies
+------------
+
+.. include:: requirements.txt
+   :literal:
