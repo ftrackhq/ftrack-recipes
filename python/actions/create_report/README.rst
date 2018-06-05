@@ -24,5 +24,6 @@ Please refer to the main ftrack-recipes python guide.
 Dependencies
 ------------
 
-.. include:: requirements.txt
-   :literal:
+* xlsxwriter
+* ftrack_python_api
+* ftrack_action_handler
