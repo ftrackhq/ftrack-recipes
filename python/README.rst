@@ -27,7 +27,9 @@ Dependencies.
 Each example comes with a **requirements.txt** text file which contains all the required dependencies.
 This file can be used to install all the requirements with the following command:
 
-* pip install -r requirements.txt
+.. code-block:: bash
+
+    $ pip install -r requirements.txt
 
 
 Environment variables.
@@ -44,4 +46,6 @@ Run as standalone.
 ------------------
 Runnin the code as standalone is easy as typing:|
 
-* python hook/<action_or_event>.py
+.. code-block:: bash
+
+    $ python hook/<action_or_event>.py

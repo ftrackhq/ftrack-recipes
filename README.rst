@@ -15,8 +15,16 @@ api_documentation
 The main `ftrack_api <http://ftrack-python-api.rtd.ftrack.com/en/stable/>`_ documentation is available online, and it should be used side by side with this code base.
 
 
+how to use this code
+--------------------
 
+Clone the repository with : 
 
+.. code-block:: bash
+
+    $ git clone git@bitbucket.org:ftrack/ftrack-recipes.git
+
+Go in the folder of the example you are interesed in and check the instructions in the README.rst file.
 
 
 
