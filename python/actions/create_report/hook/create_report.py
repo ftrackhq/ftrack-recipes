@@ -33,7 +33,10 @@ class CreateReportAction(BaseAction):
         ).one()
 
     def validate_selection(self, entities):
-        '''Utility method to check *entities* validity'''
+        '''
+        Utility method to check *entities* validity.
+        Return True if the selection is valid.
+        '''
         if not entities:
             return False
 
@@ -44,7 +47,10 @@ class CreateReportAction(BaseAction):
         return False
 
     def discover(self, session, entities, event):
-        '''Check if the current selection can discover this action.'''
+        '''
+        Check if the current selection can discover this action.
+        Return True if the action can be discovered.
+        '''
         return self.validate_selection(entities)
 
     def launch(self, session, entities, event):
@@ -137,7 +143,11 @@ class CreateReportAction(BaseAction):
         return widgets
 
     def _create_job(self, event):
-        # Create and ftrack job entity and set status to running.
+        '''
+        Create and ftrack job entity from **event* 
+        and set status to running.
+        '''
+
         user_id = event['source']['user']['id']
         job = self.session.create(
             'Job',
@@ -155,8 +165,10 @@ class CreateReportAction(BaseAction):
         return job
 
     def create_excel_file(self, project_name, file_path):
-        ''' Utility function to generate the excel file given
-        *project_name* and the output *file_path* '''
+        '''
+        Utility function to generate the excel file given
+        *project_name* and the output *file_path*.
+        '''
 
         # Prepare excel file.
         xlsFile = xlsxwriter.Workbook(file_path)
@@ -199,9 +211,17 @@ class CreateReportAction(BaseAction):
 
         # Write shot data into cells.
         for idx, shot in enumerate(sorted(shots)):
+            # Get shot status color from server.
+            status_color = shot['status']['color']
+
+            xls_shot_status = xlsFile.add_format(
+                {'bold': True, 'font_size': 20}
+            )
+            xls_shot_status.set_bg_color(status_color)
+
             sheet.write(idx + 3, 1, shot['name'], blue)
             sheet.write(idx + 3, 2, shot['description'])
-            sheet.write(idx + 3, 3, shot['status']['name'], blue)
+            sheet.write(idx + 3, 3, shot['status']['name'], xls_shot_status)
 
         xlsFile.close()
 
