@@ -226,7 +226,11 @@ class CreateReportAction(BaseAction):
 
 
 def register(api_object, **kw):
-    # Main register function for plugins.
+    '''Register hook with provided *api_object*.'''
+
+    # Validate that session is an instance of ftrack_api.Session. If not,
+    # assume that register is being called from an old or incompatible API and
+    # return without doing anything.
     if not isinstance(api_object, ftrack_api.session.Session):
         return
 
