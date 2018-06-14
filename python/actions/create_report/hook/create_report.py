@@ -155,7 +155,8 @@ class CreateReportAction(BaseAction):
         return job
 
     def create_excel_file(self, project_name, file_path):
-        '''Utility function to generate the excel file given *project_name* and the output *file_path*'''
+        ''' Utility function to generate the excel file given
+        *project_name* and the output *file_path* '''
 
         # Prepare excel file.
         xlsFile = xlsxwriter.Workbook(file_path)
@@ -221,5 +222,7 @@ if __name__ == '__main__':
     register(session)
 
     # Wait for events
-    logging.info('Registered actions and listening for events. Use Ctrl-C to abort.')
+    logging.info(
+        'Registered actions and listening for events. Use Ctrl-C to abort.'
+    )
     session.event_hub.wait()
