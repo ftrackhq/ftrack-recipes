@@ -1,3 +1,6 @@
+..
+    :copyright: Copyright (c) 2018 ftrack
+
 ====================
 Create Report Action
 ====================
