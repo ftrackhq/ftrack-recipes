@@ -22,7 +22,6 @@ class CreateReportAction(BaseAction):
     @property
     def session(self):
         '''Convenient exposure of the self._session reference.'''
-        # TODO: Should this be moved in ftrack_action_handler ?
         return self._session
 
     @property
