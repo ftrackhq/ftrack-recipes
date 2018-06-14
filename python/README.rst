@@ -1,16 +1,16 @@
 =====================
 ftrack python recipes
 =====================
-In this repository, you'll be able to find working example code regarding action, events and python api usage in general.
+In this repository, you'll be able to find working example code
+regarding action, events and python api usage in general.
 
 
 Running code examples.
 ^^^^^^^^^^^^^^^^^^^^^^
-For simplicity, and to ensure the code can be tested without affecting production code,
-these examples are setup to be run as standalone from within a virtual environment, 
-so there won't be any need of ftrack-connect running.
-
-The same code though, can run as plugin, as long as the required code dependencies are met.
+For simplicity, and to ensure the code can be tested
+without affecting production code, these examples are setup to be run as
+standalone from within a virtual environment, so there won't be any need of
+ftrack-connect running.
 
 
 Virtualenv.
@@ -24,8 +24,9 @@ Here few links on how to install and activate it.
 
 Dependencies.
 -------------
-Each example comes with a **requirements.txt** text file which contains all the required dependencies.
-This file can be used to install all the requirements with the following command:
+Each example comes with a **requirements.txt** text file which contains all the
+required dependencies. This file can be used to install all the requirements
+with the following command:
 
 .. code-block:: bash
 
