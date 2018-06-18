@@ -209,8 +209,13 @@ class CreateReportAction(BaseAction):
         )
         # Set styles on cells
         sheet.write(2, 1, 'Shots', bold16)
+        sheet.set_column(2, 1, 200)
+
         sheet.write(2, 2, 'Description', bold16)
+        sheet.set_column(2, 2, 200)
+
         sheet.write(2, 3, 'Status', bold16)
+        sheet.set_column(2, 3, 200)
 
         # Write shot data into cells.
         for idx, shot in enumerate(sorted(shots)):
@@ -223,8 +228,13 @@ class CreateReportAction(BaseAction):
             xls_shot_status.set_bg_color(status_color)
 
             sheet.write(idx + 3, 1, shot['name'], blue)
+            sheet.set_column(idx + 3, 1, 200)
+
             sheet.write(idx + 3, 2, shot['description'])
+            sheet.set_column(idx + 3, 2, 200)
+
             sheet.write(idx + 3, 3, shot['status']['name'], xls_shot_status)
+            sheet.set_column(idx + 3, 3, 200)
 
         xlsFile.close()
 
