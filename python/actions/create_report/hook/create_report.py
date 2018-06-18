@@ -9,19 +9,20 @@ import json
 
 import ftrack_api
 import xlsxwriter
-import arrow
 
 from ftrack_action_handler.action import BaseAction
 
 
 class CreateReportAction(BaseAction):
+    '''Create report action class.'''
+
     label = 'Create Report Action'
     identifier = 'com.ftrack.recipes.create_report'
     description = 'Create example report from selected Project'
 
     @property
     def session(self):
-        '''Convenient exposure of the self._session reference.'''
+        '''Return convenient exposure of the self._session reference.'''
         return self._session
 
     @property
@@ -32,9 +33,10 @@ class CreateReportAction(BaseAction):
         ).one()
 
     def validate_selection(self, entities):
-        '''
+        '''Return True if the selection is valid.
+
         Utility method to check *entities* validity.
-        Return True if the selection is valid.
+
         '''
         if not entities:
             return False
@@ -46,14 +48,15 @@ class CreateReportAction(BaseAction):
         return False
 
     def discover(self, session, entities, event):
-        '''
+        '''Return True if the action can be discovered.
+
         Check if the current selection can discover this action.
-        Return True if the action can be discovered.
+
         '''
         return self.validate_selection(entities)
 
     def launch(self, session, entities, event):
-        '''If can be discovered, we can then run the action.'''
+        '''Return result of running action.'''
 
         self.logger.info(
             u'Launching action with selection {0}'.format(entities)
@@ -120,6 +123,7 @@ class CreateReportAction(BaseAction):
         }
 
     def interface(self, session, entities, event):
+        '''Return interface for *entities*.'''
         values = event['data'].get('values', {})
         # Interface will be raised as long as there's no value set.
         # here is a good place where to put validations.
@@ -142,9 +146,12 @@ class CreateReportAction(BaseAction):
         return widgets
 
     def _create_job(self, event):
-        '''
-        Create and ftrack job entity from **event* 
-        and set status to running.
+        '''Return new job from *event*.
+
+        ..note::
+        
+            This function will auto-commit the session.
+
         '''
 
         user_id = event['source']['user']['id']
@@ -164,10 +171,7 @@ class CreateReportAction(BaseAction):
         return job
 
     def create_excel_file(self, project_name, file_path):
-        '''
-        Utility function to generate the excel file given
-        *project_name* and the output *file_path*.
-        '''
+        '''Generate excel file from *project_name* and output *file_path*.'''
 
         # Prepare excel file.
         xlsFile = xlsxwriter.Workbook(file_path)
