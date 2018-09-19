@@ -11,7 +11,7 @@ on the current location or storage scenario.
 Scope
 -----
 
-* Run connect 
+* Register new structure
 
 Install and setup
 -----------------
