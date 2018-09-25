@@ -36,21 +36,30 @@ def modify_application_launch(event):
     )
 
 
-def register(session, **kw):
-    '''Register plugin to session.'''
+def register(api_object, **kw):
+    '''Register plugin to api_object.'''
 
-    # Validate that session is an instance of ftrack_api.Session. If not,
+    # Validate that api_object is an instance of ftrack_api.Session. If not,
     # assume that register is being called from an incompatible API
     # and return without doing anything.
-    if not isinstance(session, ftrack_api.Session):
+    if not isinstance(api_object, ftrack_api.Session):
         # Exit to avoid registering this plugin again.
         return
 
     logger.info('Connect plugin discovered.')
 
     import custom_location_plugin
-    custom_location_plugin.register(session)
-    session.event_hub.subscribe(
+    custom_location_plugin.register(api_object)
+
+    # Location will be available from within the dcc applications.
+    api_object.event_hub.subscribe(
         'topic=ftrack.connect.application.launch',
         modify_application_launch
     )
+
+    # Location will be available from actions
+    api_object.event_hub.subscribe(
+        'topic=ftrack.action.launch',
+        modify_application_launch
+    )
+

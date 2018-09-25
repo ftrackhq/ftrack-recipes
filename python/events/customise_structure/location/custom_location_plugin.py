@@ -34,10 +34,10 @@ def configure_location(session, event):
     )
 
 
-def register(session, **kw):
+def register(api_object, **kw):
     '''Register location with *session*.'''
 
-    if not isinstance(session, ftrack_api.Session):
+    if not isinstance(api_object, ftrack_api.Session):
         return
 
     if not DISK_PREFIX:
@@ -48,7 +48,7 @@ def register(session, **kw):
         logger.error('Disk prefix location does not exist.')
         return
 
-    session.event_hub.subscribe(
+    api_object.event_hub.subscribe(
         'topic=ftrack.api.session.configure-location',
-        functools.partial(configure_location, session)
+        functools.partial(configure_location, api_object)
     )

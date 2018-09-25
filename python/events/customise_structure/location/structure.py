@@ -4,6 +4,7 @@
 import os
 import re
 import unicodedata
+import logging
 
 import ftrack_api.symbol
 import ftrack_api.structure.base
@@ -63,11 +64,17 @@ class Structure(ftrack_api.structure.base.Structure):
 
         '''
         super(Structure, self).__init__()
+        self.logger = logging.getLogger(
+            'com.ftrack.recipes.customise_structure.location.Structure'
+        )
         self.project_versions_prefix = project_versions_prefix
         self.illegal_character_substitute = illegal_character_substitute
 
     def _get_parts(self, entity):
         '''Return resource identifier parts from *entity*.'''
+        
+        self.logger.debug('Get parts from entity : {}'.format(entity))
+
         session = entity.session
 
         version = entity['version']
@@ -117,10 +124,14 @@ class Structure(ftrack_api.structure.base.Structure):
         parts.append(asset['name'])
         parts.append(version_number)
 
+        self.logger.debug('Get parts result : {}'.format(parts))
+
         return [self.sanitise_for_filesystem(part) for part in parts]
 
     def _format_version(self, number):
         '''Return a formatted string representing version *number*.'''
+        self.logger.debug('formatting version : {}'.format(number))
+
         return 'v{0:03d}'.format(number)
 
     def sanitise_for_filesystem(self, value):
@@ -134,6 +145,8 @@ class Structure(ftrack_api.structure.base.Structure):
         *value* unmodified.
 
         '''
+        self.logger.debug('Sanitising for file system : {}'.format(value))
+
         if self.illegal_character_substitute is None:
             return value
 
@@ -156,6 +169,14 @@ class Structure(ftrack_api.structure.base.Structure):
         context.
 
         '''
+
+        self.logger.debug(
+            'Gettting resource identifier'
+            ' for entity : {} and context : {}'.format(
+                entity, context
+            )
+        )
+
         if entity.entity_type in ('FileComponent',):
             container = entity['container']
 
