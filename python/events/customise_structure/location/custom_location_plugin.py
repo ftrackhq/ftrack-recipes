@@ -1,6 +1,7 @@
 # :coding: utf-8
 # :copyright: Copyright (c) 2018 ftrack
 
+import os
 import functools
 import logging
 
@@ -41,6 +42,10 @@ def register(session, **kw):
 
     if not DISK_PREFIX:
         logger.error('No disk prefix configured for location.')
+        return
+
+    if not os.path.exists(DISK_PREFIX) or not os.path.isdir(DISK_PREFIX):
+        logger.error('Disk prefix location does not exist.')
         return
 
     session.event_hub.subscribe(
