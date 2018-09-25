@@ -9,7 +9,7 @@ import ftrack_api.accessor.disk
 
 import structure
 
-logger = logging.getLogger('ftrack-example-location')
+logger = logging.getLogger('com.ftrack.recipes.customise_structure')
 
 # Name of the location plugin.
 LOCATION_NAME = 'custom_location'
@@ -26,7 +26,7 @@ def configure_location(session, event):
         prefix=DISK_PREFIX
     )
     location.structure = structure.Structure()
-    location.priority = 1
+    location.priority = 30
 
     logger.info(
         u'Registered location {0} at {1}.'.format(LOCATION_NAME, DISK_PREFIX)
@@ -40,7 +40,7 @@ def register(session, **kw):
         return
 
     if not DISK_PREFIX:
-        logger.info('No disk prefix configured for location.')
+        logger.error('No disk prefix configured for location.')
         return
 
     session.event_hub.subscribe(
