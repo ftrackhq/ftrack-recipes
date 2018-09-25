@@ -27,7 +27,7 @@ def configure_location(session, event):
         prefix=DISK_PREFIX
     )
     location.structure = structure.Structure()
-    location.priority = 30
+    location.priority = 1
 
     logger.info(
         u'Registered location {0} at {1}.'.format(LOCATION_NAME, DISK_PREFIX)
