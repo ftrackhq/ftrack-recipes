@@ -10,7 +10,9 @@ import ftrack_api.accessor.disk
 
 import structure
 
-logger = logging.getLogger('com.ftrack.recipes.customise_structure')
+logger = logging.getLogger(
+    'com.ftrack.recipes.customise_structure.location.custom_location_plugin'
+)
 
 # Name of the location plugin.
 LOCATION_NAME = 'custom_location'

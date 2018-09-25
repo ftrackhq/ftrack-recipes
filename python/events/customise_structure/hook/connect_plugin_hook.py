@@ -14,7 +14,7 @@ LOCATION_DIRECTORY = os.path.abspath(
 
 sys.path.append(LOCATION_DIRECTORY)
 
-logger = logging.getLogger('com.ftrack.recipes.customise_structure')
+logger = logging.getLogger('com.ftrack.recipes.customise_structure.hook')
 
 
 def modify_application_launch(event):
