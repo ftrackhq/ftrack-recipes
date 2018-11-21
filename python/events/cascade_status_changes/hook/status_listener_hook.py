@@ -9,12 +9,23 @@ import ftrack_api
 logger = logging.getLogger('cascade_status_changes_event_listener')
 
 
-status_map = {
-    'any_blocked': 'a0bc2444-15e2-11e1-b21a-0019bb4983d8',  # On Hold
-    'all_not_started': '44dd9fb2-4164-11df-9218-0019bb4983d8',  # Not started
-    'any_in_progres': '44ddd0fe-4164-11df-9218-0019bb4983d8',  # In progress
-    'all_done': '44de097a-4164-11df-9218-0019bb4983d8'  # Approved
-}
+def get_status_by_state(project, state):
+    '''Return a Status matching *state* belonging to the Schema for *project*,
+    if available.
+
+    '''
+    shot_id = session.query(
+        'select id from ObjectType where name is "Shot"').one()['id']
+
+    shot_schema = [schema
+                   for schema in project['project_schema']['_schemas']
+                   if schema['type_id'] == shot_id][0]
+    for status in shot_schema['statuses']:
+        if status['task_status']['state']['short'] == state:
+            return status['task_status']
+    raise ValueError(
+        'No valid Shot status matching state {} for project {}'.format(
+            state, project['full_name']))
 
 
 def is_status_change(entity):
@@ -28,7 +39,10 @@ def is_status_change(entity):
 
 
 def get_new_shot_status(shot, tasks):
-    '''Update statuses for *shot*.'''
+    '''Update *shot* based on status of *tasks*.
+
+    Given a *shot* and a list of *tasks* belonging to that shot, determine
+    the shots' status based on the task status\''''
     logger.info('Current shot status: {}'.format(shot['status']['name']))
 
     any_blocked = False
@@ -36,6 +50,7 @@ def get_new_shot_status(shot, tasks):
     any_in_progres = False
     all_done = True
 
+    # TODO convert to set of states
     for child in tasks:
         try:
             state = child['status']['state']['short']
@@ -61,25 +76,28 @@ def get_new_shot_status(shot, tasks):
             logger.warning(u'Unknown state returned: {}'.format(state))
             continue
 
-    new_status_id = None
+    project = session.get('Project', shot['project_id'])
+    new_status = None
     if all_done:
-        new_status_id = status_map['all_done']
+        new_status = get_status_by_state(project, 'DONE')
     elif all_not_started:
-        new_status_id = status_map['all_not_started']
+        new_status = get_status_by_state(project, 'NOT_STARTED')
     elif any_blocked:
-        new_status_id = status_map['any_blocked']
+        new_status = get_status_by_state(project, 'BLOCKED')
     elif any_in_progres:
-        new_status_id = status_map['any_in_progres']
+        new_status = get_status_by_state(project, 'IN_PROGRESS')
 
-    logger.info(u'Updating shot status to {}'.format(new_status_id))
-    return new_status_id
+    if new_status is None:
+        logger.info(u'No appropriate state to set')
+        return None
+    logger.info(u'Updating shot status to {} ({})'.format(
+        new_status['name'], new_status['id']))
+    return new_status['id']
 
 
 def cascade_status_changes_event_listener(session, event):
     '''Handle *event*.'''
     user_id = event['source'].get('user', {}).get('id', None)
-    if not user_id:
-        logger.warning('No source user...')
     status_changed = False
 
     entties = event['data'].get('entities', [])
@@ -102,30 +120,35 @@ def cascade_status_changes_event_listener(session, event):
             else:
                 logger.info('No shot found, ignoring update')
 
-    if status_changed:
-        # Persist changes
-        try:
-            session.commit()
-        except Exception:
-            logger.exception('Failed to update status')
-            session.rollback()
-            raise
+    if not status_changed:
+        return
+    # Persist changes
+    try:
+        session.commit()
+    except Exception:
+        logger.exception('Failed to update status')
+        # Since we failed to synchronize our changes with the server, revert
+        # our state to match what was on the server when we started.
+        session.rollback()
+        raise
 
-    if user_id and status_changed:
-        # Trigger a message to the user (new in ftrack 3.3.31)
-        session.event_hub.publish(
-            ftrack_api.event.base.Event(
-                topic='ftrack.action.trigger-user-interface',
-                data=dict(
-                    type='message',
-                    success=True,
-                    message='Shot status updated automatically'
-                ),
-                target='applicationId=ftrack.client.web and user.id="{0}"'.format(
-                    user_id)
+    if not user_id:
+        return
+
+    # Trigger a message to the user (new in ftrack 3.3.31)
+    session.event_hub.publish(
+        ftrack_api.event.base.Event(
+            topic='ftrack.action.trigger-user-interface',
+            data=dict(
+                type='message',
+                success=True,
+                message='Shot status updated automatically'
             ),
-            on_error='ignore'
-        )
+            target='applicationId=ftrack.client.web and user.id="{0}"'.format(
+                user_id)
+        ),
+        on_error='ignore'
+    )
 
 
 def register(session, **kw):
@@ -135,7 +158,6 @@ def register(session, **kw):
     # assume that register is being called from an incompatible API
     # and return without doing anything.
     if not isinstance(session, ftrack_api.Session):
-        # Exit to avoid registering this plugin again.
         return
 
     # Register the event handler
@@ -146,10 +168,10 @@ def register(session, **kw):
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
-    session = ftrack_api.Session()
+    # Remember, in version version 2.0 of the ftrack-python-api the default
+    # behavior will change from True to False.
+    session = ftrack_api.Session(auto_connect_event_hub=True)
     register(session)
-
-    # Wait for events
     logging.info(
         'Registered actions and listening for events. Use Ctrl-C to abort.'
     )
