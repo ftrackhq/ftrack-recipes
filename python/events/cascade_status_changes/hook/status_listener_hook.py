@@ -15,14 +15,9 @@ def get_status_by_state(project, state):
     Raise an exception if the Shot Schema for *project* has no Status with the
     given *state*.
     '''
-    shot_id = session.query(
-        'select id from ObjectType where name is "Shot"').one()['id']
-    shot_schema = [schema
-                   for schema in project['project_schema']['_schemas']
-                   if schema['type_id'] == shot_id][0]
-    for status in shot_schema['statuses']:
-        if status['task_status']['state']['short'] == state:
-            return status['task_status']
+    for status in project['project_schema'].get_statuses('Shot'):
+        if status['state']['short'] == state:
+            return status
 
     raise ValueError(
         'No valid Shot status matching state {} for project {}'.format(
@@ -79,7 +74,7 @@ def get_new_shot_status(shot, tasks):
     if new_status is None:
         logger.info(u'No appropriate state to set')
         return None
-    logger.info(u'Updating shot status to {} ({})'.format(
+    logger.info(u'New shot status is {} ({})'.format(
         new_status['name'], new_status['id']))
     return new_status['id']
 
@@ -111,8 +106,8 @@ def cascade_status_changes_event_listener(session, event):
     user_id = event['source'].get('user', {}).get('id', None)
     status_changed = False
 
-    entties = event['data'].get('entities', [])
-    for entity in entties:
+    entities = event['data'].get('entities', [])
+    for entity in entities:
         if not is_status_change(entity):
             continue
 
@@ -127,8 +122,10 @@ def cascade_status_changes_event_listener(session, event):
                 'where parent_id is "{}"'.format(shot['id'])
             )
             new_shot_status_id = get_new_shot_status(shot, tasks)
-            if (new_shot_status_id is None or
-                shot['status_id'] == new_shot_status_id):
+            if shot['status_id'] == new_shot_status_id:
+                logger.info('Status is unchanged.')
+                continue
+            if new_shot_status_id is None:
                 continue
             shot['status_id'] = new_shot_status_id
             status_changed = True
