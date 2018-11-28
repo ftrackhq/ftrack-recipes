@@ -18,7 +18,7 @@ class MigrateComponents(BaseAction):
         if not entities:
             return False
 
-        entity_type, entity_id = entities[0]
+        entity_type, _ = entities[0]
         if entity_type == 'Project':
             return True
 

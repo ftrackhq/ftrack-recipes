@@ -11,14 +11,14 @@ import ftrack_api.structure.standard
 
 
 logger = logging.getLogger(
-    'com.ftrack.custom.location.custom_location_plugin'
+    'com.ftrack.recipes.location.custom_location_plugin'
 )
 
 # Name of the location plugin.
-LOCATION_NAME = 'another.location'
+LOCATION_NAME = None
 
 # Disk mount point.
-DISK_PREFIX = '/home/ftrackwork/test_ftrack_projects'
+DISK_PREFIX = None
 
 
 def configure_location(session, event):
