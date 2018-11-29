@@ -6,7 +6,7 @@ import logging
 
 import ftrack_api
 
-logger = logging.getLogger('cascade_status_changes_event_listener')
+logger = logging.getLogger('com.ftrack.recipes.cascade_status_change')
 
 
 def get_status_by_state(project, state):
@@ -59,7 +59,7 @@ def get_new_shot_status(shot, tasks):
 
     task_states = set([get_state_name(task) for task in tasks], )
     task_states.discard(None)
-    project = session.get('Project', shot['project_id'])
+    project = shot['project']
     new_status = None
 
     if task_states == set([u'DONE'], ):
