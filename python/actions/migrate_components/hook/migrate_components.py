@@ -1,13 +1,19 @@
-import ftrack_api
+#!/usr/bin/env python
+# :coding: utf-8
+# :copyright: Copyright (c) 2018 ftrack
+
 import json
+import logging
+
+import ftrack_api
 from ftrack_action_handler.action import BaseAction
 
 
 class MigrateComponents(BaseAction):
 
-    label = 'migrate components'
+    label = 'Migrate Components'
     identifier = 'com.ftrack.recipes.migrate_components'
-    description = 'migrate project components from one location to another'
+    description = 'Migrate project components from one location to another'
 
     def validate_selection(self, entities):
         '''Return True if the selection is valid.
@@ -25,21 +31,28 @@ class MigrateComponents(BaseAction):
         return False
 
     def migrate(self, project_id, source_location, destination_location):
-
+        '''Run migration of *project_id* from *source_location* 
+        to *destination_location*.
+        '''
+        
+        # Get the source location entity.
         source_location_object = self.session.query(
             'Location where name is "{}"'.format(source_location)
         ).one()
 
+        # Get the destination location entity.
         destination_location_object = self.session.query(
             'Location where name is "{}"'.format(destination_location)
         ).one()
 
+        # Get the project entity.
         project_object = self.session.query(
             'Project where id is "{}"'.format(
                 project_id
             )
         ).one()
         
+        # Collect all the components attached to the project. 
         component_objects = self.session.query(
             'Component where version.asset.parent.project_id is "{}" '
             'and component_locations.location_id is "{}"'.format(
@@ -49,6 +62,7 @@ class MigrateComponents(BaseAction):
 
         component_count = 0
 
+        # Phiscally copy the components.
         for component in component_objects:
             try:
                 destination_location_object.add_component(
@@ -88,6 +102,8 @@ class MigrateComponents(BaseAction):
             },
 
         ]
+        
+        # Internal ftrack locations we are not interested in. 
         excluded_locations = [
             'ftrack.origin', 
             'ftrack.connect', 
@@ -99,11 +115,11 @@ class MigrateComponents(BaseAction):
         
         for location in self.session.query('Location').all():
             if location.accessor is ftrack_api.symbol.NOT_SET:
-                # remove non accessible locations
+                # Remove non accessible locations.
                 continue
 
             if location['name'] in excluded_locations:
-                # remove source location as well as ftrack default ones.
+                # Remove source location as well as ftrack default ones.
                 continue
  
             widgets[-1]['data'].append(
@@ -149,6 +165,7 @@ class MigrateComponents(BaseAction):
         return self.validate_selection(entities)
 
     def launch(self, session, entities, event):
+        '''Return result of running action.'''
 
         values = event['data'].get('values', {})
 
@@ -175,14 +192,16 @@ class MigrateComponents(BaseAction):
         # Set job status as done.
         job['status'] = 'done'
         self.session.commit()
-
-        return {
-            'success': 'True',
-            'message': '{} components have been copied from :{} to :{}'.format(
-                component_count, source_location, destination_location
-            )
-        }
-
+an
+anessage to the user with the amount of components copied and
+ancations involved.
+an
+an': 'True',
+an': '{} components have been copied from :{} to :{}'.format(
+anonent_count, source_location, destination_location
+an
+an
+an
 
 def register(api_object, **kw):
     '''Register hook with provided *api_object*.'''
@@ -197,3 +216,16 @@ def register(api_object, **kw):
         api_object
     )
     action.register()
+
+
+if __name__ == '__main__':
+    # To be run as standalone code.
+    logging.basicConfig(level=logging.INFO)
+    session = ftrack_api.Session()
+    register(session)
+
+    # Wait for events
+    logging.info(
+        'Registered actions and listening for events. Use Ctrl-C to abort.'
+    )
+    session.event_hub.wait()

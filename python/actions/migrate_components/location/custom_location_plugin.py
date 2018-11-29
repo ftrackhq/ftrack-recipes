@@ -29,6 +29,7 @@ def configure_location(session, event):
         prefix=DISK_PREFIX
     )
 
+    # use the same structure as the storage scenario.
     location.structure = ftrack_api.structure.standard.StandardStructure()
     location.priority = 2  # lower than storage scenario
 
