@@ -16,10 +16,9 @@ class MigrateComponents(BaseAction):
     description = 'Migrate project components from one location to another'
 
     def validate_selection(self, entities):
-        '''Return True if the selection is valid.
+        ''' Utility method to check *entities* validity.
 
-        Utility method to check *entities* validity.
-
+        Return True if the selection is valid.
         '''
         if not entities:
             return False
@@ -68,12 +67,12 @@ class MigrateComponents(BaseAction):
                 destination_location_object.add_component(
                     component, source_location_object
                 )
+
             except ftrack_api.exception.LocationError as error:
                 self.logger.warning(error)
-                # as has failed does not count.
-                component_count -= 1
 
-            component_count += 1
+            finally:
+                component_count += 1
 
         self.session.commit()
         return component_count
@@ -185,23 +184,15 @@ class MigrateComponents(BaseAction):
         )
         
         _, entity_id = entities[0]
-        component_count = self.migrate(
+        self.migrate(
             entity_id, source_location, destination_location
         )
 
         # Set job status as done.
+        # This will notify the user in the web ui.
         job['status'] = 'done'
         self.session.commit()
-an
-anessage to the user with the amount of components copied and
-ancations involved.
-an
-an': 'True',
-an': '{} components have been copied from :{} to :{}'.format(
-anonent_count, source_location, destination_location
-an
-an
-an
+
 
 def register(api_object, **kw):
     '''Register hook with provided *api_object*.'''
