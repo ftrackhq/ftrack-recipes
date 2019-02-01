@@ -9,11 +9,11 @@ from ftrack_action_handler.action import BaseAction
 import ftrack_api
 
 
-class WebWidgets(BaseAction):
+class UserInterface(BaseAction):
 
-    label = 'Web Widgets'
-    identifier = 'com.ftrack.recipes.web_widgets'
-    description = 'This is an example action returning UI'
+    label = 'User interface'
+    identifier = 'com.ftrack.recipes.user_interface'
+    description = 'Example action returning a user interface.'
 
     def discover(self, session, entities, event):
         '''Return True if the action can be discovered.
@@ -21,6 +21,7 @@ class WebWidgets(BaseAction):
         Check if the current selection can discover this action.
 
         '''
+        # Always show this action.
         return True
 
     def interface(self, session, entities, event):
