@@ -2,15 +2,11 @@
 # :coding: utf-8
 # :copyright: Copyright (c) 2018 ftrack
 
-import os
-import tempfile
-import json
-import logging
 import datetime
-
-import ftrack_api
+import logging
 
 from ftrack_action_handler.action import BaseAction
+import ftrack_api
 
 
 class WebWidgets(BaseAction):
@@ -28,60 +24,59 @@ class WebWidgets(BaseAction):
         return True
 
     def interface(self, session, entities, event):
-
         widgets = [
-                {
-                    'label': 'My String',
-                    'type': 'text',
-                    'value': 'no string',
-                    'name': 'my_string'
-                }, {
-                    'label': 'My String2',
-                    'type': 'text',
-                    'value': 'no string2',
-                    'name': 'my_string2'
-                }, {
-                    'label': 'My Date',
-                    'type': 'date',
-                    'name': 'my_date',
-                    'value': datetime.date.today().isoformat()
-                }, {
-                    'label': 'My Number',
-                    'type': 'number',
-                    'name': 'my_number',
-                    'empty_text': 'Type a number here...'
-                }, {
-                    'value': '## This is a label. ##',
-                    'type': 'label'
-                }, {
-                    'label': 'Enter your text',
-                    'name': 'my_textarea',
-                    'value': 'some text',
-                    'type': 'textarea'
-                }, {
-                    'label': 'My Boolean',
-                    'name': 'my_boolean',
-                    'value': True,
-                    'type': 'boolean'
-                }, {
-                    'value': 'This field is hidden',
-                    'name': 'my_hidden',
-                    'type': 'hidden'
-                }, {
-                    'label': 'My Enum',
-                    'type': 'enumerator',
-                    'name': 'my_enumerator',
-                    'data': [
-                        {
-                            'label': 'Option 1',
-                            'value': 'opt1'
-                        }, {
-                            'label': 'Option 2',
-                            'value': 'opt2'
-                        }
-                    ]
-                }
-            ]
+            {
+                'label': 'My String',
+                'type': 'text',
+                'value': 'no string',
+                'name': 'my_string'
+            }, {
+                'label': 'My String2',
+                'type': 'text',
+                'value': 'no string2',
+                'name': 'my_string2'
+            }, {
+                'label': 'My Date',
+                'type': 'date',
+                'name': 'my_date',
+                'value': datetime.date.today().isoformat()
+            }, {
+                'label': 'My Number',
+                'type': 'number',
+                'name': 'my_number',
+                'empty_text': 'Type a number here...'
+            }, {
+                'value': '## This is a label. ##',
+                'type': 'label'
+            }, {
+                'label': 'Enter your text',
+                'name': 'my_textarea',
+                'value': 'some text',
+                'type': 'textarea'
+            }, {
+                'label': 'My Boolean',
+                'name': 'my_boolean',
+                'value': True,
+                'type': 'boolean'
+            }, {
+                'value': 'This field is hidden',
+                'name': 'my_hidden',
+                'type': 'hidden'
+            }, {
+                'label': 'My Enum',
+                'type': 'enumerator',
+                'name': 'my_enumerator',
+                'data': [
+                    {
+                        'label': 'Option 1',
+                        'value': 'opt1'
+                    }, {
+                        'label': 'Option 2',
+                        'value': 'opt2'
+                    }
+                ]
+            }
+        ]
 
         return widgets
 
@@ -107,7 +102,7 @@ def register(session, **kw):
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
-    session = ftrack_api.Session()
+    session = ftrack_api.Session(auto_connect_event_hub=True)
     register(session)
 
     session.event_hub.wait()
