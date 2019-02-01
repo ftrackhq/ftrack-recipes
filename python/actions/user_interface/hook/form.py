@@ -97,7 +97,7 @@ def register(session, **kw):
     if not isinstance(session, ftrack_api.Session):
         return
 
-    action = WebWidgets(session)
+    action = UserInterface(session)
     action.register()
 
 
