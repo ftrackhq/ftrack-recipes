@@ -28,6 +28,16 @@ class UpdateReviewClips(BaseAction):
         This action should only be available when a review session is selected.
         For the moment we trust that our user has permissions to perform the
         needed actions.
+
+        *session* is a ftrack_api.Session instance.
+
+        *entities* is a list of tuples each containing the entity type and the
+        entity id. If the entity is a hierarchical you will always get the
+        entity type TypedContext, once retrieved through a get operation you
+        will have the "real" entity type ie. example Shot, Sequence
+        or Asset Build.
+
+        *event* is the unmodified original event.
         '''
         if not entities:
             return False
@@ -36,6 +46,25 @@ class UpdateReviewClips(BaseAction):
         return entity_type == 'ReviewSession'
 
     def launch(self, session, entities, event):
+        '''Callback method for the custom action.
+
+        Return either a bool (True if successful or False if the action failed)
+        or a dictionary with they keys `message` and `success`, the message
+        should be a string and will be displayed as feedback to the user,
+        success should be a bool, True if successful or False if the action
+        failed.
+
+        *session* is a ftrack_api.Session instance.
+
+        *entities* is a list of tuples each containing the entity type and the
+        entity id. If the entity is a hierarchical you will always get the
+        entity type TypedContext, once retrieved through a get operation you
+        will have the "real" entity type ie. example Shot, Sequence
+        or Asset Build.
+
+        *event* is the unmodified original event.
+
+        '''
         entity_type, entity_id = entities[0]
 
         review_session_objects = session.query(
