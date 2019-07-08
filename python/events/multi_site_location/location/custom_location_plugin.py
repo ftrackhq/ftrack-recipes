@@ -11,8 +11,10 @@ import ftrack_api.accessor.disk
 import ftrack_api.structure.standard
 
 logger = logging.getLogger(
-    'com.ftrack.recipes.multi_site_location.location.custom_location_plugin'
+    'com.ftrack.recipes.multi_site_location.custom_location_plugin'
 )
+
+# retrieve current location from the environment variables
 current_location = os.environ.get('FTRACK_LOCATION')
 
 

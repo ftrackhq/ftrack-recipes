@@ -2,11 +2,11 @@
     "custom.location1": {
         "linux2": "/mnt/zeus/storage/ftrack/projects/",
         "win32": "p://ftrack_projects",
-        "darwin": "/mnt/zeus/storage/ftrack/projects/"
+        "darwin": "/net/zeus/storage/ftrack/projects/"
     },
     "custom.location2": {
         "linux2": "/mnt/z/storage/ftrack/projects/",
         "win32": "z://ftrack_projects",
-        "darwin": "/mnt/z/storage/ftrack/projects/"
+        "darwin": "/net/z/storage/ftrack/projects/"
     }
 }
