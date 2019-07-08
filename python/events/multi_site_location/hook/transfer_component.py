@@ -1,12 +1,22 @@
 #!/usr/bin/env python
 # :coding: utf-8
-# :copyright: Copyright (c) 2018 ftrack
+# :copyright: Copyright (c) 2019 ftrack
 
+import sys
+import os
 import json
 import logging
 
 import ftrack_api
 from ftrack_action_handler.action import BaseAction
+
+
+CWD = os.path.dirname(__file__)
+
+LOCATION_DIRECTORY = os.path.abspath(
+    os.path.join(CWD, '..', 'location')
+)
+sys.path.append(LOCATION_DIRECTORY)
 
 
 class TransferComponent(BaseAction):
@@ -44,7 +54,7 @@ class TransferComponent(BaseAction):
         destination_location_object = self.session.query(
             'Location where name is "{}"'.format(destination_location)
         ).one()
-        
+
         # Collect all the components attached to the project. 
         component_objects = self.session.query(
             'Component where id is "{}" '
@@ -63,7 +73,7 @@ class TransferComponent(BaseAction):
                 )
 
             except ftrack_api.exception.LocationError as error:
-                self.logger.warning(error)
+                self.logger.error(error)
 
             finally:
                 component_count += 1
@@ -88,7 +98,7 @@ class TransferComponent(BaseAction):
                 'type': 'enumerator'
             },
             {
-                'label': 'destination location',
+                'label': 'current location',
                 'value': self.session.pick_location()['name'],
                 'name': 'destination_location',
                 'type': 'text'
@@ -105,7 +115,7 @@ class TransferComponent(BaseAction):
             self.session.pick_location()['name']
         ]
         
-        for location in self.session.query('Location').all():
+        for location in self.session.query('select name from Location').all():
             if location.accessor is ftrack_api.symbol.NOT_SET:
                 # Remove non accessible locations.
                 continue
