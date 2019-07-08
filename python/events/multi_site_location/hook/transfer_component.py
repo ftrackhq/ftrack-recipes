@@ -6,17 +6,10 @@ import sys
 import os
 import json
 import logging
+import functools
 
 import ftrack_api
 from ftrack_action_handler.action import BaseAction
-
-
-CWD = os.path.dirname(__file__)
-
-LOCATION_DIRECTORY = os.path.abspath(
-    os.path.join(CWD, '..', 'location')
-)
-sys.path.append(LOCATION_DIRECTORY)
 
 
 class TransferComponent(BaseAction):
@@ -198,9 +191,33 @@ class TransferComponent(BaseAction):
 
         return True
 
+    def register(self):
+        current_location_name = os.environ.get('FTRACK_LOCATION')
+        current_location_object = self.session.pick_location()
 
-def register(api_object, **kw):
+        print '>>>>>>>>>', current_location_name, current_location_object['name']
+
+        if current_location_object['name'] != current_location_name:
+            self.logger.warning(
+                'Not registering action {} for location {} on {}'.format(
+                    self.identifier, current_location_name, current_location_object['name']
+                ))
+            return
+
+        super(TransferComponent, self).register()
+
+
+
+def register_action(session, event):
     '''Register hook with provided *api_object*.'''
+
+    action = TransferComponent(
+        session
+    )
+    action.register()
+
+
+def register(api_object):
 
     # Validate that session is an instance of ftrack_api.Session. If not,
     # assume that register is being called from an old or incompatible API and
@@ -208,7 +225,7 @@ def register(api_object, **kw):
     if not isinstance(api_object, ftrack_api.session.Session):
         return
 
-    action = TransferComponent(
-        api_object
+    api_object.event_hub.subscribe(
+        'topic=ftrack.api.session.ready',
+        functools.partial(register_action, api_object)
     )
-    action.register()
