@@ -14,9 +14,14 @@ LOCATION_DIRECTORY = os.path.abspath(
 sys.path.append(LOCATION_DIRECTORY)
 logger = logging.getLogger('com.ftrack.recipes.multi_site_location.hook')
 
+
+# Location data is composed by location name and the mount point
+# the latter should be represented based on the operating system will be running on
+# if multiple oss will be using the same location this will have to be addressed.
+
 LOCATIONS_DATA = {
     'custom.location1': '/mnt/zeus/storage/ftrack/projects/',
-    'custom.location2': '/somewhere/else'
+    'custom.location2': '/mnt/z/storage/ftrack/projects/'
 }
 
 
