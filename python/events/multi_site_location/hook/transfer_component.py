@@ -217,7 +217,9 @@ class TransferComponent(BaseAction):
             return
 
         self.session.event_hub.subscribe(
-            'topic=ftrack.action.discover',
+            'topic=ftrack.action.discover and data.location={0}'.format(
+                current_location_name
+            ),
             self._discover
         )
 
