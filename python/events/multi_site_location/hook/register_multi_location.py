@@ -8,21 +8,20 @@ import json
 import ftrack_api
 import ftrack_connect.application
 
+logger = logging.getLogger('com.ftrack.recipes.multi_site_location.hook')
+
 
 CWD = os.path.dirname(__file__)
 
 LOCATION_DIRECTORY = os.path.abspath(
     os.path.join(CWD, '..', 'location')
 )
+sys.path.append(LOCATION_DIRECTORY)
+
 
 LOCATIONS_CONFIG_FILE_PATH = os.path.abspath(
     os.path.join(CWD, 'locations.json')
 )
-
-sys.path.append(LOCATION_DIRECTORY)
-logger = logging.getLogger('com.ftrack.recipes.multi_site_location.hook')
-
-print LOCATIONS_CONFIG_FILE_PATH
 
 with open(LOCATIONS_CONFIG_FILE_PATH) as json_file:
     LOCATIONS_DATA = json.load(json_file)
