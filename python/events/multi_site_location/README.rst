@@ -1,0 +1,94 @@
+====================
+multi site locations
+====================
+
+This recipe will show show to easily setup a multi site location system.
+As assumption we take that there'll be 2 location at play , named respectively:
+
+* location1
+* location2
+
+Each site will register its location with names:
+
+* location1 -> custom.location1
+* location2 -> custom.location2
+
+In a production scenario these names will reflect the company and the location name eg:
+
+* mycompany.central.uk
+* mycompany.central.es
+
+.. note::
+
+    In order for multi location setup to work, you'll have to disable the 
+    storage scenario using : reset to automatic storage scenario from the Media Management
+    settings of the ftrack server.
+    
+
+.. warning:: 
+
+    If a previous storage scenario has been used, please make sure
+    the affected location set the same name, structure and accessor as the storage
+    scenario.
+
+
+Setup
+=====
+
+The following instructions will have to be followed for both location.
+Each location though will define a different location name.
+
+Installing the locations:
+-------------------------
+
+(option1) Centralised connect plugins
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Create a shared folder on the local server where to store this code.
+
+Create an environment variable to point to the newly created folder
+
+.. code-block:: bash
+    (osx and linux)
+    export FTRACK_CONNECT_PLUGIN_PATH=/path/to/shared/folder/:${FTRACK_CONNECT_PLUGIN_PATH}
+
+On windows machines, please set this environment variable through the AdvancedSystemSettings
+
+.. code-block:: bash
+    (windows)
+    FTRACK_CONNECT_PLUGIN_PATH /path/to/shared/folder/;$FTRACK_CONNECT_PLUGIN_PATH
+
+.. note:: 
+    This environment variable should be set on each machine
+
+
+(option2) local connect plugins
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Instead of having them shared you prefer, you can simply install the code on each and
+every machine under the `local <http://ftrack-connect.rtd.ftrack.com/en/stable/developing/plugins.html>`_ connect plugin folder.
+
+
+Define current location
+-----------------------
+
+We are creating here a custom environment variable to store the current location name
+
+.. code-block:: bash
+    (osx and linux)
+    export FTRACK_LOCATION_NAME='custom.location<N>'
+
+
+On windows machines, please set this environment variable through the AdvancedSystemSettings
+
+.. code-block:: bash
+    (windoes)
+    FTRACK_LOCATION_NAME 'custom.location<N>'
+
+
+..note:: 
+    The location variable name will be different based on the site is installed into.
+    where <N> of the name is the location number where you are located.
+
+.. note:: 
+    This environment variable should be set on each machine
