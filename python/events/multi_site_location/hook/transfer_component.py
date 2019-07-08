@@ -191,21 +191,43 @@ class TransferComponent(BaseAction):
 
         return True
 
+    def _discover(self, event):
+        '''override protected discover function to inject current location name'''
+
+        discovered_items = super(TransferComponent, self)._discover(event)
+        if not discovered_items:
+            return
+
+        # add current location to the event data
+        for item in discovered_items['items']:
+            item['location'] = os.environ.get('FTRACK_LOCATION')
+
+        return discovered_items
+
     def register(self):
         current_location_name = os.environ.get('FTRACK_LOCATION')
         current_location_object = self.session.pick_location()
 
-        print '>>>>>>>>>', current_location_name, current_location_object['name']
-
         if current_location_object['name'] != current_location_name:
             self.logger.warning(
                 'Not registering action {} for location {} on {}'.format(
-                    self.identifier, current_location_name, current_location_object['name']
+                    self.identifier, current_location_name, 
+                    current_location_object['name']
                 ))
             return
 
-        super(TransferComponent, self).register()
+        self.session.event_hub.subscribe(
+            'topic=ftrack.action.discover',
+            self._discover
+        )
 
+        self.session.event_hub.subscribe(
+            'topic=ftrack.action.launch and data.actionIdentifier={0} and data.location={1}'.format(
+                self.identifier,
+                current_location_name
+            ),
+            self._launch
+        )
 
 
 def register_action(session, event):
