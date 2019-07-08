@@ -3,7 +3,7 @@ multi site locations
 ====================
 
 This recipe will show show to easily setup a multi site location system.
-As assumption we take that there'll be 2 location at play , named respectively:
+As assumption we take that there'll be 2 location at play able to access each other mount points:
 
 * location1
 * location2
@@ -24,7 +24,6 @@ In a production scenario these names will reflect the company and the location n
     storage scenario using : reset to automatic storage scenario from the Media Management
     settings of the ftrack server.
     
-
 .. warning:: 
 
     If a previous storage scenario has been used, please make sure
@@ -92,3 +91,10 @@ On windows machines, please set this environment variable through the AdvancedSy
 
 .. note:: 
     This environment variable should be set on each machine
+
+
+Configure mount points
+----------------------
+
+modify
+

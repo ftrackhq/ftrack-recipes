@@ -4,25 +4,28 @@
 import os
 import sys
 import logging
-
+import json
 import ftrack_api
 import ftrack_connect.application
 
+
+CWD = os.path.dirname(__file__)
+
 LOCATION_DIRECTORY = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), '..', 'location')
+    os.path.join(CWD, '..', 'location')
 )
+
+LOCATIONS_CONFIG_FILE_PATH = os.path.abspath(
+    os.path.join(CWD, 'locations.json')
+)
+
 sys.path.append(LOCATION_DIRECTORY)
 logger = logging.getLogger('com.ftrack.recipes.multi_site_location.hook')
 
+print LOCATIONS_CONFIG_FILE_PATH
 
-# Location data is composed by location name and the mount point
-# the latter should be represented based on the operating system will be running on
-# if multiple oss will be using the same location this will have to be addressed.
-
-LOCATIONS_DATA = {
-    'custom.location1': '/mnt/zeus/storage/ftrack/projects/',
-    'custom.location2': '/mnt/z/storage/ftrack/projects/'
-}
+with open(LOCATIONS_CONFIG_FILE_PATH) as json_file:
+    LOCATIONS_DATA = json.load(json_file)
 
 
 def modify_application_launch(event):

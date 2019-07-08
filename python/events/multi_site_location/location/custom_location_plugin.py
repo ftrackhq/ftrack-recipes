@@ -2,6 +2,7 @@
 # :copyright: Copyright (c) 2018 ftrack
 
 import os
+import sys
 import functools
 import logging
 
@@ -18,7 +19,10 @@ current_location = os.environ.get('FTRACK_LOCATION')
 def configure_location(session, location_setup, event):
     '''Listen.'''
 
-    for location_name, disk_prefix in location_setup.items():
+    for location_name, disk_prefixes in location_setup.items():
+
+        # Get mount point for the correct os in use
+        disk_prefix = disk_prefixes.get(sys.platform)
 
         if not disk_prefix:
             logger.error(
