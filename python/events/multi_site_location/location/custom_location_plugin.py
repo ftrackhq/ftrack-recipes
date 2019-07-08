@@ -32,7 +32,7 @@ def configure_location(session, location_setup, event):
                     location_name
                 )
             )
-            return
+            continue
 
         if not os.path.exists(disk_prefix) or not os.path.isdir(disk_prefix):
             logger.error(
@@ -40,7 +40,7 @@ def configure_location(session, location_setup, event):
                     location_name
                 )
             )
-            return
+            continue
 
         location = session.ensure('Location', {'name': location_name})
 
