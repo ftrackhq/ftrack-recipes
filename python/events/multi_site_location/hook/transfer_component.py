@@ -30,7 +30,7 @@ class TransferComponent(BaseAction):
 
         return False
 
-    def migrate(self, project_id, source_location, destination_location):
+    def transfer(self, component_id, source_location, destination_location):
         '''Run migration of *project_id* from *source_location* 
         to *destination_location*.
         '''
@@ -44,19 +44,12 @@ class TransferComponent(BaseAction):
         destination_location_object = self.session.query(
             'Location where name is "{}"'.format(destination_location)
         ).one()
-
-        # Get the project entity.
-        project_object = self.session.query(
-            'Project where id is "{}"'.format(
-                project_id
-            )
-        ).one()
         
         # Collect all the components attached to the project. 
         component_objects = self.session.query(
-            'Component where version.asset.parent.project_id is "{}" '
+            'Component where id is "{}" '
             'and component_locations.location_id is "{}"'.format(
-                project_object['id'], source_location_object['id']
+                component_id, source_location_object['id']
                 )
         ).all()
 
@@ -90,17 +83,16 @@ class TransferComponent(BaseAction):
         widgets = [
             {
                 'label': 'source location',
-                'value': self.session.pick_location()['name'],
+                'data': [],
                 'name': 'source_location',
-                'type': 'text'
+                'type': 'enumerator'
             },
             {
                 'label': 'destination location',
-                'data': [],
+                'value': self.session.pick_location()['name'],
                 'name': 'destination_location',
-                'type': 'enumerator'
-            },
-
+                'type': 'text'
+            }
         ]
         
         # Internal ftrack locations we are not interested in. 
@@ -122,7 +114,7 @@ class TransferComponent(BaseAction):
                 # Remove source location as well as ftrack default ones.
                 continue
  
-            widgets[-1]['data'].append(
+            widgets[0]['data'].append(
                 {
                     'label': location['name'],
                     'value': location['name']
@@ -185,7 +177,7 @@ class TransferComponent(BaseAction):
         )
         
         _, entity_id = entities[0]
-        self.migrate(
+        self.transfer(
             entity_id, source_location, destination_location
         )
 
@@ -193,6 +185,8 @@ class TransferComponent(BaseAction):
         # This will notify the user in the web ui.
         job['status'] = 'done'
         self.session.commit()
+
+        return True
 
 
 def register(api_object, **kw):

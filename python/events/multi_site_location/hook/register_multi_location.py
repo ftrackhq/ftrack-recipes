@@ -31,6 +31,9 @@ with open(LOCATIONS_CONFIG_FILE_PATH) as json_file:
 def modify_application_launch(event):
     '''Modify the application environment to include  our location plugin.'''
 
+    if 'options' not in event['data']:
+        event['data']['options'] = {'env': {}}
+
     environment = event['data']['options']['env']
 
     ftrack_connect.application.appendPath(
