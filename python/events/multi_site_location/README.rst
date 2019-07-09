@@ -3,7 +3,7 @@ multi site locations
 ====================
 
 This recipe will show show to easily setup a multi site location system.
-As assumption we take that there'll be 2 location at play able to access each other mount points:
+As assumption we take that there'll be 2 location at play, able to access each other mount points:
 
 * location1
 * location2
@@ -64,8 +64,8 @@ On windows machines, please set this environment variable through the AdvancedSy
 (option2) local connect plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Instead of having them shared you prefer, you can simply install the code on each and
-every machine under the `local <http://ftrack-connect.rtd.ftrack.com/en/stable/developing/plugins.html>`_ connect plugin folder.
+Otherwise ,you can simply install the code on each and every machine under
+the `local <http://ftrack-connect.rtd.ftrack.com/en/stable/developing/plugins.html>`_ connect plugin folder.
 
 
 Define current location

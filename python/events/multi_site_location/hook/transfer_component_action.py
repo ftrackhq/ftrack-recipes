@@ -14,7 +14,7 @@ class TransferComponent(BaseAction):
 
     current_location = os.environ.get('FTRACK_LOCATION')
     identifier = 'com.ftrack.recipes.multi_site_location.transfer_components'
-    description = 'Migrate project components from one location to another'
+    description = 'Transfer project components from one location to another'
     label = 'Transfer Component'
     variant = 'to {}'.format(current_location)
 
@@ -50,7 +50,7 @@ class TransferComponent(BaseAction):
 
         return True
 
-    def transfer(self, component_id, source_location, destination_location):
+    def transfer(self, job, component_id, source_location, destination_location):
         '''Run migration of *project_id* from *source_location* 
         to *destination_location*.
         '''
@@ -75,7 +75,7 @@ class TransferComponent(BaseAction):
 
         component_count = 0
 
-        # Phiscally copy the components.
+        # Phisically copy the components.
         for component in component_objects:
             try:
                 destination_location_object.add_component(
@@ -84,6 +84,13 @@ class TransferComponent(BaseAction):
 
             except ftrack_api.exception.LocationError as error:
                 self.logger.error(error)
+                job['status'] = 'error'
+                job['data'] = json.dumps({
+                    'description': unicode(
+                        error
+                    )}
+                )
+                self.session.commit()
 
             finally:
                 component_count += 1
@@ -211,7 +218,7 @@ class TransferComponent(BaseAction):
         
         _, entity_id = entities[0]
         self.transfer(
-            entity_id, source_location, destination_location
+            job, entity_id, source_location, destination_location
         )
 
         # Set job status as done.
