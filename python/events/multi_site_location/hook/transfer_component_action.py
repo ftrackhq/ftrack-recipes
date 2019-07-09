@@ -16,7 +16,7 @@ class TransferComponent(BaseAction):
     identifier = 'com.ftrack.recipes.multi_site_location.transfer_components'
     description = 'Migrate project components from one location to another'
     label = 'Transfer Component'
-    variant = current_location
+    variant = 'to {}'.format(current_location)
 
     def validate_selection(self, entities):
         ''' Utility method to check *entities* validity.
@@ -151,6 +151,13 @@ class TransferComponent(BaseAction):
         self.session.commit()
         return job
 
+    def _discover(self, event):
+        result = super(TransferComponent, self)._discover(event)
+        for item in result['items']:
+            item['location'] = self.current_location
+
+        return result
+
     def discover(self, session, entities, event):
         '''Return True if the action can be discovered.
 
@@ -193,7 +200,8 @@ class TransferComponent(BaseAction):
 
     def register(self):
         current_location_object = self.session.pick_location()
-        
+        print current_location_object['name'], self.current_location
+
         if current_location_object['name'] != self.current_location:
             self.logger.warning(
                 'Not registering action {} for location {} on {}'.format(
@@ -203,7 +211,7 @@ class TransferComponent(BaseAction):
             return
 
         self.session.event_hub.subscribe(
-            'topic=ftrack.action.discover',
+            'topic=ftrack.action.discover and data.location="{0}"'.format(self.current_location),
             self._discover
         )
 
@@ -217,6 +225,7 @@ class TransferComponent(BaseAction):
 
 def register_action(session, event):
     '''Register hook with provided *api_object*.'''
+    print event
     action = TransferComponent(
         session
     )
