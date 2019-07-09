@@ -15,7 +15,7 @@ class TransferComponent(BaseAction):
     current_location = os.environ.get('FTRACK_LOCATION')
     identifier = 'com.ftrack.recipes.multi_site_location.transfer_components'
     description = 'Migrate project components from one location to another'
-    label = 'Transfer Component (to {0})'.format(current_location)
+    label = 'Transfer Component'
     variant = current_location
 
     def validate_selection(self, entities):
