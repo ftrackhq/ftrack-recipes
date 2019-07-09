@@ -2,10 +2,8 @@
 # :coding: utf-8
 # :copyright: Copyright (c) 2019 ftrack
 
-import sys
 import os
 import json
-import logging
 import functools
 
 import ftrack_api
@@ -191,23 +189,10 @@ class TransferComponent(BaseAction):
 
         return True
 
-    def _discover(self, event):
-        '''override protected discover function to inject current location name'''
-
-        discovered_items = super(TransferComponent, self)._discover(event)
-        if not discovered_items:
-            return
-
-        # add current location to the event data
-        for item in discovered_items['items']:
-            item['location'] = os.environ.get('FTRACK_LOCATION')
-
-        return discovered_items
-
     def register(self):
         current_location_name = os.environ.get('FTRACK_LOCATION')
         current_location_object = self.session.pick_location()
-
+        
         if current_location_object['name'] != current_location_name:
             self.logger.warning(
                 'Not registering action {} for location {} on {}'.format(
@@ -217,14 +202,12 @@ class TransferComponent(BaseAction):
             return
 
         self.session.event_hub.subscribe(
-            'topic=ftrack.action.discover and data.location={0}'.format(
-                current_location_name
-            ),
+            'topic=ftrack.action.discover',
             self._discover
         )
 
         self.session.event_hub.subscribe(
-            'topic=ftrack.action.launch and data.actionIdentifier={0} and data.location={1}'.format(
+            'topic=ftrack.action.launch and data.actionIdentifier={0} and data.location="{1}"'.format(
                 self.identifier,
                 current_location_name
             ),
@@ -234,7 +217,6 @@ class TransferComponent(BaseAction):
 
 def register_action(session, event):
     '''Register hook with provided *api_object*.'''
-
     action = TransferComponent(
         session
     )
@@ -251,5 +233,6 @@ def register(api_object):
 
     api_object.event_hub.subscribe(
         'topic=ftrack.api.session.ready',
-        functools.partial(register_action, api_object)
+        functools.partial(register_action, api_object),
+        subscriber={'location': os.environ.get('FTRACK_LOCATION')}
     )

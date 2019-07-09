@@ -29,6 +29,7 @@ with open(LOCATIONS_CONFIG_FILE_PATH) as json_file:
 
 def modify_application_launch(event):
     '''Modify the application environment to include  our location plugin.'''
+    print event
 
     if 'options' not in event['data']:
         event['data']['options'] = {'env': {}}
@@ -66,11 +67,14 @@ def register(api_object, **kw):
     # Location will be available from within the dcc applications.
     api_object.event_hub.subscribe(
         'topic=ftrack.connect.application.launch',
-        modify_application_launch
+        modify_application_launch,
+        subscriber={'location': os.environ.get('FTRACK_LOCATION')}
+
     )
 
     # Location will be available from actions
     api_object.event_hub.subscribe(
         'topic=ftrack.action.launch',
-        modify_application_launch
+        modify_application_launch,
+        subscriber={'location': os.environ.get('FTRACK_LOCATION')}
     )
