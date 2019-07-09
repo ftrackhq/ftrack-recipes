@@ -13,10 +13,11 @@ Each site will register its location with names:
 * location1 -> custom.location1
 * location2 -> custom.location2
 
-In a production scenario these names will reflect the company and the location name eg:
+In a production scenario these names is suggested to make the name reflect the storage scope, and the location name eg:
 
 * mycompany.central.uk
 * mycompany.central.es
+
 
 .. note::
 
@@ -34,8 +35,8 @@ In a production scenario these names will reflect the company and the location n
 Setup
 =====
 
-The following instructions will have to be followed for both location.
-Each location though will define a different location name.
+The following instructions will have to be followed for all the locations.
+Each location though will define a different and unique location name.
 
 Installing the locations:
 -------------------------
@@ -44,8 +45,7 @@ Installing the locations:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Create a shared folder on the local server where to store this code.
-
-Create an environment variable to point to the newly created folder
+Create an environment variable to point to the newly created folder.
 
 .. code-block:: bash
     (osx and linux)
@@ -93,8 +93,13 @@ On windows machines, please set this environment variable through the AdvancedSy
     This environment variable should be set on each machine
 
 
-Configure mount points
-----------------------
+Configure locations
+-------------------
 
-modify
+Location configurations are contained in the local json file locations.json
+This file contains one entry for each location name and a mapping of mount points for each os at play.
+
+
+
+
 

@@ -62,6 +62,9 @@ def configure_location(session, location_setup, event):
 def register(api_object, location_setup=None):
     '''Register location with *session*.'''
 
+    # Validate that api_object is an instance of ftrack_api.Session. If not,
+    # assume that register is being called from an incompatible API
+    # and return without doing anything.
     if not isinstance(api_object, ftrack_api.Session):
         return
 
