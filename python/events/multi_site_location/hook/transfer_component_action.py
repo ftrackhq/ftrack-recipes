@@ -26,12 +26,29 @@ class TransferComponent(BaseAction):
         if not entities:
             return False
 
-        entity_type, _ = entities[0]
-        print entity_type
-        if entity_type == 'Component':
-            return True
+        entity_type, entity_id = entities[0]
+        if entity_type != 'Component':
+            return False
 
-        return False
+        # Check if the selected component is already in the location
+        # where the action is started from.
+
+        component_location = self.session.query(
+            'Location where name is "{}"'.format(
+                self.current_location)
+        ).one()
+
+        component_object = self.session.query(
+            'Component where id is "{}" '
+            'and component_locations.location_id is "{}"'.format(
+                entity_id, component_location['id']
+                )
+        ).first()
+
+        if not component_object:
+            return False
+
+        return True
 
     def transfer(self, component_id, source_location, destination_location):
         '''Run migration of *project_id* from *source_location* 
@@ -152,6 +169,8 @@ class TransferComponent(BaseAction):
         return job
 
     def _discover(self, event):
+        # Override discover to inject current location in the discovered items.
+
         result = super(TransferComponent, self)._discover(event)
 
         if not result:
