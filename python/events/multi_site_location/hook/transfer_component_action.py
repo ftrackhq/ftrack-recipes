@@ -153,6 +153,10 @@ class TransferComponent(BaseAction):
 
     def _discover(self, event):
         result = super(TransferComponent, self)._discover(event)
+
+        if not result:
+            return
+
         for item in result['items']:
             item['location'] = self.current_location
 
@@ -199,19 +203,8 @@ class TransferComponent(BaseAction):
         return True
 
     def register(self):
-        current_location_object = self.session.pick_location()
-        print current_location_object['name'], self.current_location
-
-        if current_location_object['name'] != self.current_location:
-            self.logger.warning(
-                'Not registering action {} for location {} on {}'.format(
-                    self.identifier, self.current_location,
-                    current_location_object['name']
-                ))
-            return
-
         self.session.event_hub.subscribe(
-            'topic=ftrack.action.discover and data.location="{0}"'.format(self.current_location),
+            'topic=ftrack.action.discover',
             self._discover
         )
 
@@ -223,24 +216,14 @@ class TransferComponent(BaseAction):
         )
 
 
-def register_action(session, event):
+def register(api_object, *kwargs):
     '''Register hook with provided *api_object*.'''
-    print event
+    if not isinstance(api_object, ftrack_api.Session):
+        # Exit to avoid registering this plugin again.
+        return
+
     action = TransferComponent(
-        session
+        api_object
     )
     action.register()
 
-
-def register(api_object):
-
-    # Validate that session is an instance of ftrack_api.Session. If not,
-    # assume that register is being called from an old or incompatible API and
-    # return without doing anything.
-    if not isinstance(api_object, ftrack_api.session.Session):
-        return
-
-    api_object.event_hub.subscribe(
-        'topic=ftrack.api.session.ready',
-        functools.partial(register_action, api_object)
-    )
