@@ -228,8 +228,11 @@ class TransferComponent(BaseAction):
         )
 
         self.session.event_hub.subscribe(
-            'topic=ftrack.action.launch and data.actionIdentifier={0} and data.location="{1}"'.format(
-                self.identifier, self.current_location
+            (
+                'topic=ftrack.action.launch and data.actionIdentifier={0}'
+                ' and data.location="{1}"'.format(
+                    self.identifier, self.current_location
+                )
             ),
             self._launch
         )
