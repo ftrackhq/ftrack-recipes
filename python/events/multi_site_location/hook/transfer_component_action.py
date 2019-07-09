@@ -12,9 +12,11 @@ from ftrack_action_handler.action import BaseAction
 
 class TransferComponent(BaseAction):
 
-    label = 'Transfer Components'
+    current_location = os.environ.get('FTRACK_LOCATION')
     identifier = 'com.ftrack.recipes.multi_site_location.transfer_components'
     description = 'Migrate project components from one location to another'
+    label = 'Transfer Component (to {0})'.format(current_location)
+    variant = current_location
 
     def validate_selection(self, entities):
         ''' Utility method to check *entities* validity.
@@ -190,13 +192,12 @@ class TransferComponent(BaseAction):
         return True
 
     def register(self):
-        current_location_name = os.environ.get('FTRACK_LOCATION')
         current_location_object = self.session.pick_location()
         
-        if current_location_object['name'] != current_location_name:
+        if current_location_object['name'] != self.current_location:
             self.logger.warning(
                 'Not registering action {} for location {} on {}'.format(
-                    self.identifier, current_location_name, 
+                    self.identifier, self.current_location,
                     current_location_object['name']
                 ))
             return
@@ -208,8 +209,7 @@ class TransferComponent(BaseAction):
 
         self.session.event_hub.subscribe(
             'topic=ftrack.action.launch and data.actionIdentifier={0} and data.location="{1}"'.format(
-                self.identifier,
-                current_location_name
+                self.identifier, self.current_location
             ),
             self._launch
         )
@@ -233,6 +233,5 @@ def register(api_object):
 
     api_object.event_hub.subscribe(
         'topic=ftrack.api.session.ready',
-        functools.partial(register_action, api_object),
-        subscriber={'location': os.environ.get('FTRACK_LOCATION')}
+        functools.partial(register_action, api_object)
     )
