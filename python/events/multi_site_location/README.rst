@@ -65,7 +65,7 @@ On windows machines, please set this environment variable through the AdvancedSy
     This environment variable should be set on each machine
 
 
-(option2) local connect plugins
+(option2) Local connect plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Otherwise ,you can simply install the code on each and every machine under
