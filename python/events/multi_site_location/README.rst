@@ -2,8 +2,9 @@
 multi site locations
 ====================
 
-This recipe will show show to easily setup a multi site location system.
-As assumption we take that there'll be 2 location at play, able to access each other mount points:
+This recipe will show how to easily setup a multi site location system with ftrack.
+
+As assumption we take that there'll be 2 location at play, able to access each other mount points (eg: through vpn):
 
 * location1
 * location2
@@ -47,17 +48,20 @@ Installing the locations:
 Create a shared folder on the local server where to store this code.
 Create an environment variable to point to the newly created folder.
 
-.. code-block:: bash
+.. code-block::
+
     (osx and linux)
     export FTRACK_CONNECT_PLUGIN_PATH=/path/to/shared/folder/:${FTRACK_CONNECT_PLUGIN_PATH}
 
 On windows machines, please set this environment variable through the AdvancedSystemSettings
 
-.. code-block:: bash
+.. code-block::
+
     (windows)
     FTRACK_CONNECT_PLUGIN_PATH /path/to/shared/folder/;$FTRACK_CONNECT_PLUGIN_PATH
 
-.. note:: 
+.. note::
+
     This environment variable should be set on each machine
 
 
@@ -71,25 +75,28 @@ the `local <http://ftrack-connect.rtd.ftrack.com/en/stable/developing/plugins.ht
 Define current location
 -----------------------
 
-We are creating here a custom environment variable to store the current location name
+We are creating here a custom environment variable named **FTRACK_LOCATION** to store the current location name
 
-.. code-block:: bash
-    (osx and linux)
-    export FTRACK_LOCATION_NAME='custom.location<N>'
+.. code-block::
+
+    (Osx and Linux)
+    export FTRACK_LOCATION='custom.location<N>'
 
 
 On windows machines, please set this environment variable through the AdvancedSystemSettings
 
-.. code-block:: bash
-    (windoes)
-    FTRACK_LOCATION_NAME 'custom.location<N>'
+.. code-block::
 
+    (Windows)
+    FTRACK_LOCATION 'custom.location<N>'
 
-..note:: 
+.. note:: 
+
     The location variable name will be different based on the site is installed into.
     where <N> of the name is the location number where you are located.
 
 .. note:: 
+
     This environment variable should be set on each machine
 
 
@@ -99,7 +106,9 @@ Configure locations
 Location configurations are contained in the local json file locations.json
 This file contains one entry for each location name and a mapping of mount points for each os at play.
 
+example file:
 
-
+.. include:: hook/locations.json
+   :literal:
 
 

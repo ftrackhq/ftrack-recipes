@@ -30,24 +30,6 @@ class TransferComponent(BaseAction):
         if entity_type != 'Component':
             return False
 
-        # Check if the selected component is already in the location
-        # where the action is started from.
-
-        component_location = self.session.query(
-            'Location where name is "{}"'.format(
-                self.current_location)
-        ).one()
-
-        component_object = self.session.query(
-            'Component where id is "{}" '
-            'and component_locations.location_id is "{}"'.format(
-                entity_id, component_location['id']
-                )
-        ).first()
-
-        if not component_object:
-            return False
-
         return True
 
     def transfer(self, job, component_id, source_location, destination_location):
