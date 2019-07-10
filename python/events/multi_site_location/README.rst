@@ -22,8 +22,8 @@ In a production scenario these names is suggested to make the name reflect the s
 
 .. note::
 
-    In order for multi location setup to work, you'll have to disable the 
-    storage scenario using : reset to automatic storage scenario from the Media Management
+    In order for multi location setup to work, you'll have to *disable the 
+    storage scenario* using : **reset to automatic storage scenario** from the Media Management
     settings of the ftrack server.
     
 .. warning:: 
@@ -124,6 +124,22 @@ example file:
             "darwin": "/path/to/mount/point2"
         }
     }
+
+
+Running the transfer component action
+-------------------------------------
+
+In order to copy one component from one location to another, select the component you want to transfer and click on the 
+**A** icon next to it. Once clicked the server will present a list of available actions for it, among which, you'll be able to 
+find the **Transfer Component to <location name>**.
+
+Click on it and select the **source location** from where the component should be transfer from.
+The destination location will be set to your current one.
+
+.. note::
+    The *transfer component* action will be visible on components only.
+
+
 
 
 Dependencies
