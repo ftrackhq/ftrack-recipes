@@ -126,3 +126,8 @@ example file:
     }
 
 
+Dependencies
+------------
+
+* ftrack_python_api
+* ftrack_action_handler
