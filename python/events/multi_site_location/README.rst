@@ -77,17 +77,19 @@ Define current location
 
 We are creating here a custom environment variable named **FTRACK_LOCATION** to store the current location name
 
-.. code-block::
+(Osx and Linux)
 
-    (Osx and Linux)
+.. code-block:: bash
+
     export FTRACK_LOCATION='custom.location<N>'
 
 
 On windows machines, please set this environment variable through the AdvancedSystemSettings
 
-.. code-block::
+(Windows)
 
-    (Windows)
+.. code-block:: bash
+
     FTRACK_LOCATION 'custom.location<N>'
 
 .. note:: 
@@ -108,7 +110,19 @@ This file contains one entry for each location name and a mapping of mount point
 
 example file:
 
-.. include:: hook/locations.json
-   :literal:
+.. code-block:: json
+
+    {
+        "custom.location1": {
+            "linux2": "/path/to/mount/point1",
+            "win32": "Z:\\path\\to\\mount\\point1",
+            "darwin": "/path/to/mount/point1"
+        },
+        "custom.location2": {
+            "linux2": "/path/to/mount/point2",
+            "win32": "Z:\\path\\to\\mount\\point2",
+            "darwin": "/path/to/mount/point2"
+        }
+    }
 
 
