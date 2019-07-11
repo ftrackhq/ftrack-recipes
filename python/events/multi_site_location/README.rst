@@ -41,8 +41,8 @@ Setup
 The following instructions will have to be followed for all the locations.
 Each location will define a different and unique location name.
 
-Installing the locations:
--------------------------
+Installing the locations
+------------------------
 
 (Option 1) Centralised connect plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
