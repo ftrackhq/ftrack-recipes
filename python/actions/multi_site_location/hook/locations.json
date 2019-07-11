@@ -1,0 +1,12 @@
+{
+    "custom.location1": {
+        "linux2": "/remote/location/one",
+        "win32": "Z:\\ftrack\\project_loc1",
+        "darwin": "/net/remote/location/one"
+    },
+    "custom.location2": {
+        "linux2": "/remote/location/two",
+        "win32": "Z:\\ftrack\\project_loc2",
+        "darwin": "/net/remote/location/two"
+    }
+}
