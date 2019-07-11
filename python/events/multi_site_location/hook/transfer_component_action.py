@@ -4,7 +4,6 @@
 
 import os
 import json
-import functools
 
 import ftrack_api
 from ftrack_action_handler.action import BaseAction
@@ -32,11 +31,11 @@ class TransferComponent(BaseAction):
 
         return True
 
-    def transfer(self, job, component_id, source_location, destination_location):
-        '''Run migration of *project_id* from *source_location* 
-        to *destination_location*.
-        '''
-        
+    def transfer(
+        self, job, component_id, source_location, destination_location
+    ):
+        '''Transfer *component_id* from *source_location* to destination.'''
+
         # Get the source location entity.
         source_location_object = self.session.query(
             'Location where name is "{}"'.format(source_location)
@@ -47,7 +46,7 @@ class TransferComponent(BaseAction):
             'Location where name is "{}"'.format(destination_location)
         ).one()
 
-        # Collect all the components attached to the project. 
+        # Collect all the components attached to the project.
         component_objects = self.session.query(
             'Component where id is "{}" '
             'and component_locations.location_id is "{}"'.format(
@@ -103,17 +102,17 @@ class TransferComponent(BaseAction):
                 'type': 'text'
             }
         ]
-        
-        # Internal ftrack locations we are not interested in. 
+
+        # Internal ftrack locations we are not interested in.
         excluded_locations = [
-            'ftrack.origin', 
-            'ftrack.connect', 
-            'ftrack.unmanaged', 
-            'ftrack.server', 
-            'ftrack.review', 
+            'ftrack.origin',
+            'ftrack.connect',
+            'ftrack.unmanaged',
+            'ftrack.server',
+            'ftrack.review',
             self.session.pick_location()['name']
         ]
-        
+
         for location in self.session.query('select name from Location').all():
             if location.accessor is ftrack_api.symbol.NOT_SET:
                 # Remove non accessible locations.
@@ -122,7 +121,7 @@ class TransferComponent(BaseAction):
             if location['name'] in excluded_locations:
                 # Remove source location as well as ftrack default ones.
                 continue
- 
+
             widgets[0]['data'].append(
                 {
                     'label': location['name'],
@@ -136,7 +135,7 @@ class TransferComponent(BaseAction):
         '''Return new job from *event*.
 
         ..note::
-        
+
             This function will auto-commit the session.
 
         '''
@@ -186,10 +185,10 @@ class TransferComponent(BaseAction):
         # If there's no value coming from the ui, we can bail out.
         if not values:
             return
-    
+
         source_location = values['source_location']
         destination_location = values['destination_location']
-    
+
         # Create a new running Job.
         job = self._create_job(
             event, 'Copying components from {} to {}'.format(
@@ -197,7 +196,7 @@ class TransferComponent(BaseAction):
                 destination_location
             )
         )
-        
+
         _, entity_id = entities[0]
         self.transfer(
             job, entity_id, source_location, destination_location
@@ -237,4 +236,3 @@ def register(api_object, *kwargs):
         api_object
     )
     action.register()
-
