@@ -1,5 +1,5 @@
 # :coding: utf-8
-# :copyright: Copyright (c) 2015 ftrack
+# :copyright: Copyright (c) 2019 ftrack
 
 import json
 import sys
@@ -47,10 +47,7 @@ class TransferComponentsAction(ftrack_action_handler.action.BaseAction):
     #: Excluded Locations
     excluded_locations = [
         'ftrack.origin',
-        'ftrack.connect',
-        'ftrack.unmanaged',
-        'ftrack.server',
-        'ftrack.review',
+        'ftrack.connect'
     ]
 
     def validate_entities(self, entities):
