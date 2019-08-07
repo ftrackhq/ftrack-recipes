@@ -44,6 +44,15 @@ class TransferComponentsAction(ftrack_action_handler.action.BaseAction):
     #: Action description.
     description = 'Transfer component(s) between locations.'
 
+    #: Excluded Locations
+    excluded_locations = [
+        'ftrack.origin',
+        'ftrack.connect',
+        'ftrack.unmanaged',
+        'ftrack.server',
+        'ftrack.review',
+    ]
+
     def validate_entities(self, entities):
         '''Return if *entities* is valid.'''
         if (
@@ -259,6 +268,14 @@ class TransferComponentsAction(ftrack_action_handler.action.BaseAction):
             locations = sorted(
                 locations, key=lambda location: location.priority
             )
+
+            # Remove built in locations
+            locations = [
+                location for location in locations
+                if location['name'] not in self.excluded_locations
+            ]
+            self.logger.info(locations)
+            
             locations_options = [
                 {
                     'label': location['label'] or location['name'],
