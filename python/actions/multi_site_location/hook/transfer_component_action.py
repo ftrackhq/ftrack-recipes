@@ -1,238 +1,373 @@
-#!/usr/bin/env python
 # :coding: utf-8
 # :copyright: Copyright (c) 2019 ftrack
 
-import os
 import json
+import sys
+import argparse
+import logging
+import threading
+import collections
 
 import ftrack_api
-from ftrack_action_handler.action import BaseAction
+import ftrack_api.exception
+import ftrack_action_handler.action
+
+SUPPORTED_ENTITY_TYPES = (
+    'AssetVersion', 'TypedContext', 'Project', 'Component'
+)
 
 
-class TransferComponent(BaseAction):
+def async(fn):
+    '''Run *fn* asynchronously.'''
+    def wrapper(*args, **kwargs):
+        thread = threading.Thread(target=fn, args=args, kwargs=kwargs)
+        thread.start()
+    return wrapper
 
-    current_location = os.environ.get('FTRACK_LOCATION')
-    identifier = 'com.ftrack.recipes.multi_site_location.transfer_components'
-    description = 'Transfer project components from one location to another'
-    label = 'Transfer Component'
-    variant = 'to {}'.format(current_location)
 
-    def validate_selection(self, entities):
-        ''' Utility method to check *entities* validity.
+def get_filter_string(entity_ids):
+    '''Return a comma separated string of quoted ids from *entity_ids* list.'''
+    return ', '.join(
+        '"{0}"'.format(entity_id) for entity_id in entity_ids
+    )
 
-        Return True if the selection is valid.
-        '''
-        if not entities:
-            return False
 
-        entity_type, entity_id = entities[0]
-        if entity_type != 'Component':
-            return False
+class TransferComponentsAction(ftrack_action_handler.action.BaseAction):
+    '''Action to transfer components between locations.'''
 
-        return True
+    #: Action identifier.
+    identifier = 'transfer-components'
 
-    def transfer(
-        self, job, component_id, source_location, destination_location
-    ):
-        '''Transfer *component_id* from *source_location* to destination.'''
+    #: Action label.
+    label = 'Transfer component(s)'
 
-        # Get the source location entity.
-        source_location_object = self.session.query(
-            'Location where name is "{}"'.format(source_location)
-        ).one()
+    #: Action description.
+    description = 'Transfer component(s) between locations.'
 
-        # Get the destination location entity.
-        destination_location_object = self.session.query(
-            'Location where name is "{}"'.format(destination_location)
-        ).one()
+    #: Excluded Locations
+    excluded_locations = [
+        'ftrack.origin',
+        'ftrack.connect'
+    ]
 
-        # Collect all the components attached to the project.
-        component_objects = self.session.query(
-            'Component where id is "{}" '
-            'and component_locations.location_id is "{}"'.format(
-                component_id, source_location_object['id']
-                )
-        ).all()
-
-        component_count = 0
-
-        # Phisically copy the components.
-        for component in component_objects:
-            try:
-                destination_location_object.add_component(
-                    component, source_location_object
-                )
-
-            except ftrack_api.exception.LocationError as error:
-                self.logger.error(error)
-                job['status'] = 'error'
-                job['data'] = json.dumps({
-                    'description': unicode(
-                        error
-                    )}
-                )
-                self.session.commit()
-
-            finally:
-                component_count += 1
-
-        self.session.commit()
-        return component_count
-
-    def interface(self, session, entities, event):
-        '''Return interface for *entities*.'''
-        values = event['data'].get('values', {})
-        # Interface will be raised as long as there's no value set.
-        # here is a good place where to put validations.
-        if values:
-            return
-
-        # Populate ui with the project name.
-        widgets = [
-            {
-                'label': 'source location',
-                'data': [],
-                'name': 'source_location',
-                'type': 'enumerator'
-            },
-            {
-                'label': 'current location',
-                'value': self.session.pick_location()['name'],
-                'name': 'destination_location',
-                'type': 'text'
-            }
-        ]
-
-        # Internal ftrack locations we are not interested in.
-        excluded_locations = [
-            'ftrack.origin',
-            'ftrack.connect',
-            'ftrack.unmanaged',
-            'ftrack.server',
-            'ftrack.review',
-            self.session.pick_location()['name']
-        ]
-
-        for location in self.session.query('select name from Location').all():
-            if location.accessor is ftrack_api.symbol.NOT_SET:
-                # Remove non accessible locations.
-                continue
-
-            if location['name'] in excluded_locations:
-                # Remove source location as well as ftrack default ones.
-                continue
-
-            widgets[0]['data'].append(
-                {
-                    'label': location['name'],
-                    'value': location['name']
-                }
+    def validate_entities(self, entities):
+        '''Return if *entities* is valid.'''
+        if (
+            len(entities) >= 1 and
+            all(
+                [
+                    entity_type in SUPPORTED_ENTITY_TYPES
+                    for entity_type, _ in entities
+                ]
             )
-
-        return widgets
-
-    def _create_job(self, event, message):
-        '''Return new job from *event*.
-
-        ..note::
-
-            This function will auto-commit the session.
-
-        '''
-
-        user_id = event['source']['user']['id']
-        job = self.session.create(
-            'Job',
-            {
-                'user': self.session.get('User', user_id),
-                'status': 'running',
-                'data': json.dumps({
-                    'description': unicode(
-                         message
-                    )}
-                )
-            }
-        )
-        self.session.commit()
-        return job
-
-    def _discover(self, event):
-        # Override discover to inject current location in the discovered items.
-
-        result = super(TransferComponent, self)._discover(event)
-
-        if not result:
-            return
-
-        for item in result['items']:
-            item['location'] = self.current_location
-
-        return result
+        ):
+            self.logger.info('Selection is valid')
+            return True
+        else:
+            self.logger.info('Selection is _not_ valid')
+            return False
 
     def discover(self, session, entities, event):
-        '''Return True if the action can be discovered.
+        '''Return True if action is valid.'''
+        self.logger.info(
+            u'Discovering action with entities: {0}'.format(entities)
+        )
+        return self.validate_entities(entities)
 
-        Check if the current selection can discover this action.
+    def get_components_in_location(self, session, entities, location):
+        '''Return list of components in *entities*.'''
+        component_queries = []
+        entity_groups = collections.defaultdict(list)
+        for entity_type, entity_id in entities:
+            entity_groups[entity_type].append(entity_id)
+
+        if entity_groups['Project']:
+            component_queries.append(
+                'Component where (version.asset.parent.project.id in ({0}) or '
+                'version.asset.parent.id in ({0}))'.format(
+                    get_filter_string(entity_groups['Project'])
+                )
+            )
+
+        if entity_groups['TypedContext']:
+            component_queries.append(
+                'Component where (version.asset.parent.ancestors.id in ({0}) or '
+                'version.asset.parent.id in ({0}))'.format(
+                    get_filter_string(entity_groups['TypedContext'])
+                )
+            )
+
+        if entity_groups['AssetVersion']:
+            component_queries.append(
+                'Component where version_id in ({0})'.format(
+                    get_filter_string(entity_groups['AssetVersion'])
+                )
+            )
+
+        if entity_groups['Component']:
+            component_queries.append(
+                'Component where id in ({0})'.format(
+                    get_filter_string(entity_groups['Component'])
+                )
+            )
+
+        components = set()
+        for query_string in component_queries:
+            components.update(
+                session.query(
+                    '{0} and component_locations.location_id is "{1}"'.format(
+                        query_string, location['id']
+                    )
+                ).all()
+            )
+
+        self.logger.info(
+            'Found {0} components in selection'.format(len(components))
+        )
+        return list(components)
+
+    @async
+    def transfer_components(
+        self, entities, source_location, target_location, user_id=None,
+        ignore_component_not_in_location=False, ignore_location_errors=False
+    ):
+        '''Transfer components in *entities* from *source_location*.
+
+        if *ignore_component_not_in_location*, ignore components missing in
+        source location. If *ignore_location_errors* is specified, ignore all
+        locations-related errors.
+
+        Reports progress back to *user_id* using a job.
 
         '''
-        return self.validate_selection(entities)
+
+        session = ftrack_api.Session(
+            auto_connect_event_hub=False
+        )
+        job = session.create('Job', {
+            'user_id': user_id,
+            'status': 'running',
+            'data': json.dumps({
+                'description': 'Transfer components (Gathering...)'
+            })
+        })
+        session.commit()
+        try:
+            components = self.get_components_in_location(
+                session, entities, source_location
+            )
+            amount = len(components)
+            self.logger.info('Transferring {0} components'.format(amount))
+
+            for index, component in enumerate(components, start=1):
+                self.logger.info(
+                    'Transferring component ({0} of {1})'.format(index, amount)
+                )
+                job['data'] = json.dumps({
+                    'description': 'Transfer components ({0} of {1})'.format(
+                        index, amount
+                    )
+                })
+                session.commit()
+
+                try:
+                    target_location.add_component(
+                        component, source=source_location
+                    )
+                except ftrack_api.exception.ComponentInLocationError:
+                    self.logger.info(
+                        'Component ({}) already in target location'.format(
+                            component
+                        )
+                    )
+                except ftrack_api.exception.ComponentNotInLocationError:
+                    if (
+                        ignore_component_not_in_location or
+                        ignore_location_errors
+                    ):
+                        self.logger.exception(
+                            'Failed to add component to location'
+                        )
+                    else:
+                        raise
+                except ftrack_api.exception.LocationError:
+                    if ignore_location_errors:
+                        self.logger.exception(
+                            'Failed to add component to location'
+                        )
+                    else:
+                        raise
+
+            job['status'] = 'done'
+            session.commit()
+
+            self.logger.info(
+                'Transfer complete ({0} components)'.format(amount)
+            )
+
+        except BaseException:
+            self.logger.exception('Transfer failed')
+            session.rollback()
+            job['status'] = 'failed'
+            session.commit()
 
     def launch(self, session, entities, event):
-        '''Return result of running action.'''
+        '''Launch edit meta data action.'''
+        self.logger.info(
+            u'Launching action with selection: {0}'.format(entities)
+        )
+        values = event['data']['values']
+        self.logger.info(u'Received values: {0}'.format(values))
 
+        source_location = session.get('Location', values['from_location'])
+        target_location = session.get('Location', values['to_location'])
+        if source_location == target_location:
+            return {
+                'success': False,
+                'message': 'Source and target locations are the same.'
+            }
+
+        ignore_component_not_in_location = (
+            values.get('ignore_component_not_in_location') == 'true'
+        )
+        ignore_location_errors = (
+            values.get('ignore_location_errors') == 'true'
+        )
+
+        self.logger.info(
+            'Transferring components from {0} to {1}'
+            .format(source_location, target_location)
+        )
+        user_id = event['source']['user']['id']
+        self.transfer_components(
+            entities,
+            source_location,
+            target_location,
+            user_id=user_id,
+            ignore_component_not_in_location=ignore_component_not_in_location,
+            ignore_location_errors=ignore_location_errors
+        )
+        return {
+            'success': True,
+            'message': 'Transferring components...'
+        }
+
+    def interface(self, session, entities, event):
+        '''Return interface.'''
         values = event['data'].get('values', {})
 
-        # If there's no value coming from the ui, we can bail out.
         if not values:
-            return
-
-        source_location = values['source_location']
-        destination_location = values['destination_location']
-
-        # Create a new running Job.
-        job = self._create_job(
-            event, 'Copying components from {} to {}'.format(
-                source_location,
-                destination_location
+            locations = filter(
+                lambda location: location.accessor,
+                session.query('select name, label from Location').all()
             )
-        )
+            # Sort by priority.
+            locations = sorted(
+                locations, key=lambda location: location.priority
+            )
 
-        _, entity_id = entities[0]
-        self.transfer(
-            job, entity_id, source_location, destination_location
-        )
+            # Remove built in locations
+            locations = [
+                location for location in locations
+                if location['name'] not in self.excluded_locations
+            ]
+            self.logger.info(locations)
+            
+            locations_options = [
+                {
+                    'label': location['label'] or location['name'],
+                    'value': location['id']
+                }
+                for location in locations
+            ]
+            return [
+                {
+                    'value': 'Transfer components between locations',
+                    'type': 'label'
+                }, {
+                    'label': 'Source location',
+                    'type': 'enumerator',
+                    'name': 'from_location',
+                    'value': locations_options[0]['value'],
+                    'data': locations_options
+                }, {
+                    'label': 'Target location',
+                    'type': 'enumerator',
+                    'name': 'to_location',
+                    'value': locations_options[1]['value'],
+                    'data': locations_options
+                }, {
+                    'value': '---',
+                    'type': 'label'
+                }, {
+                    'label': 'Ignore missing',
+                    'type': 'enumerator',
+                    'name': 'ignore_component_not_in_location',
+                    'value': 'false',
+                    'data': [
+                        {'label': 'Yes', 'value': 'true'},
+                        {'label': 'No', 'value': 'false'}
+                    ]
+                }, {
+                    'label': 'Ignore errors',
+                    'type': 'enumerator',
+                    'name': 'ignore_location_errors',
+                    'value': 'false',
+                    'data': [
+                        {'label': 'Yes', 'value': 'true'},
+                        {'label': 'No', 'value': 'false'}
+                    ]
+                }
+            ]
 
-        # Set job status as done.
-        # This will notify the user in the web ui.
-        job['status'] = 'done'
-        self.session.commit()
 
-        return True
+def register(session, **kw):
+    '''Register plugin. Called when used as an plugin.'''
 
-    def register(self):
-        self.session.event_hub.subscribe(
-            'topic=ftrack.action.discover',
-            self._discover
-        )
-
-        self.session.event_hub.subscribe(
-            (
-                'topic=ftrack.action.launch and data.actionIdentifier={0}'
-                ' and data.location="{1}"'.format(
-                    self.identifier, self.current_location
-                )
-            ),
-            self._launch
-        )
-
-
-def register(api_object, *kwargs):
-    '''Register hook with provided *api_object*.'''
-    if not isinstance(api_object, ftrack_api.Session):
-        # Exit to avoid registering this plugin again.
+    # Validate that session is an instance of ftrack_api.Session. If not,
+    # assume that register is being called from an old or incompatible API and
+    # return without doing anything.
+    if not isinstance(session, ftrack_api.session.Session):
         return
 
-    action = TransferComponent(
-        api_object
+    action_handler = TransferComponentsAction(session)
+    action_handler.register()
+
+
+def main(arguments=None):
+    '''Set up logging and register action.'''
+    if arguments is None:
+        arguments = []
+
+    parser = argparse.ArgumentParser()
+    # Allow setting of logging level from arguments.
+    loggingLevels = {}
+    for level in (
+        logging.NOTSET, logging.DEBUG, logging.INFO, logging.WARNING,
+        logging.ERROR, logging.CRITICAL
+    ):
+        loggingLevels[logging.getLevelName(level).lower()] = level
+
+    parser.add_argument(
+        '-v', '--verbosity',
+        help='Set the logging output verbosity.',
+        choices=loggingLevels.keys(),
+        default='info'
     )
-    action.register()
+    namespace = parser.parse_args(arguments)
+
+    # Set up basic logging
+    logging.basicConfig(level=loggingLevels[namespace.verbosity])
+
+    session = ftrack_api.Session()
+    register(session)
+
+    # Wait for events
+    logging.info(
+        'Registered actions and listening for events. Use Ctrl-C to abort.'
+    )
+    session.event_hub.wait()
+
+
+if __name__ == '__main__':
+    raise SystemExit(main(sys.argv[1:]))
