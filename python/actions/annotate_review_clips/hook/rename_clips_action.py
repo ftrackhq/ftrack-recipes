@@ -89,7 +89,7 @@ class UpdateReviewClips(BaseAction):
         in question.
         '''
         review_component = self.session.query(
-            'select metadata from Component where name is ftrackreview-mp4'
+            'select metadata from Component where name like "ftrackreview-%"'
             ' and version_id is "{0}"'.format(
                 review_session_object['version_id']
             )
