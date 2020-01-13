@@ -1,5 +1,5 @@
 ..
-    :copyright: Copyright (c) 2018 ftrack
+    :copyright: Copyright (c) 2019 ftrack
 
 ==============================
 Make non encoding web playable
