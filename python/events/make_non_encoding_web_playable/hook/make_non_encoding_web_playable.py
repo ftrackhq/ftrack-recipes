@@ -11,6 +11,15 @@ import ftrack_api.session
 
 logger = logging.getLogger('com.ftrack.recipes.make-non-encode-web-playable')
 
+
+# Gathered from https://en.wikipedia.org/wiki/Video_file_format
+ENCODING_SUPPORTED_EXTENSIONS_VIDEO = [
+    '.3g2', '.3gp', '.asf', '.avi', '.drc', '.flv', '.m2v', '.m4p', '.m4v',
+    '.m4v', '.mkv', '.mng', '.mov', '.mp2', '.mp4', '.mpe', '.mpeg', '.mpg',
+    '.mpv', '.mxf', '.nsv', '.ogg', '.ogv', '.qt', '.rm', '.rmvb', '.roq',
+    '.svi', '.vob','.webm', '.wmv', '.yuv'
+]
+
 #change these to match full path to the exact executables.
 ffmpeg_cmd = 'ffmpeg'
 ffprobe_cmd = 'ffprobe'
@@ -24,10 +33,14 @@ def exec_cmd(cmd):
     (stdout, stderr) = process.communicate()
 
     if process.returncode:
-        print 'Subprocess failed, dumping output:'
-        print '--------------- %s -----------------' % cmd[0]
-        print stderr
-        print '--------------------------------------'
+        logger.error(
+            (
+                'Subprocess failed, dumping output:'
+                '--------------- {0} -----------------'
+                '{1}'
+                '--------------------------------------'
+            ).format(cmd[0], stderr)
+        )
         raise EnvironmentError('Subprocess failed: %s' % cmd[0])
 
     return stdout
@@ -40,7 +53,6 @@ def generate_thumbnail(filepath):
     cmd = [ffmpeg_cmd]
     cmd += ['-v', 'error']
     cmd += ['-i', filepath]
-    cmd += ['-filter:v', 'scale=300:-1']
     cmd += ['-ss', '0']
     cmd += ['-an', '-vframes', '1']
     cmd += ['-vcodec', 'mjpeg']
@@ -68,25 +80,25 @@ def get_info(filepath):
 
     try:
         streams = result.get('streams', {})
-        videoInfo = [
+        video_info = [
             stream for stream in streams if stream.get('codec_type') == 'video'
         ][0]
-        formatInfo = result.get('format', {})
+        format_info = result.get('format', {})
 
-        frameRates = videoInfo.get('r_frame_rate', '0/0').split('/')
-        frameRate = float(frameRates[0]) / float(frameRates[1])
+        frame_rates = video_info.get('r_frame_rate', '0/0').split('/')
+        frame_rate = float(frame_rates[0]) / float(frame_rates[1])
     except Exception:
-        frameRate = 0
+        frame_rate = 0
 
-    frameOut = int(videoInfo.get('nb_frames', 0))
-    if not frameOut:
-        duration = float(formatInfo.get('duration', 0))
-        frameOut = int(duration * frameRate)
+    frame_out = int(video_info.get('nb_frames', 0))
+    if not frame_out:
+        duration = float(format_info.get('duration', 0))
+        frame_out = int(duration * frame_rate)
 
     meta = {
         'frameIn': 0,
-        'frameOut': frameOut,
-        'frameRate': frameRate,
+        'frameOut': frame_out,
+        'frameRate': frame_rate,
     }
 
     return meta
@@ -101,20 +113,28 @@ def callback(event, session):
     event.stop()
 
     # run new event
-    server_location = session.query(
-        'Location where name is "ftrack.server"'
-    ).one()
+    server_location = session.get(
+        'Location',
+        ftrack_api.symbol.SERVER_LOCATION_ID
+    )
 
-    versionId = event['data']['versionId']
+    version_id = event['data']['versionId']
     path = event['data']['path']
 
-    version = session.get('AssetVersion', versionId)
+    version = session.get('AssetVersion', version_id)
     session.commit()
 
     # Validate that the path is an accessible file.
     if not os.path.isfile(path):
         raise ValueError(
             '"{0}" is not a valid filepath.'.format(path)
+        )
+
+    # Validate file is of the supported format
+    _, file_extension = os.path.splitext(path)
+    if file_extension not in ENCODING_SUPPORTED_EXTENSIONS_VIDEO:
+        raise ValueError(
+            '"{0}" is not in a valid file format.'.format(path)
         )
 
     # publish the file for review without re encoding.
@@ -140,8 +160,12 @@ def subscribe(session):
     '''Subscribe to events.'''
     topic = 'ftrack.connect.publish.make-web-playable'
     logger.info('Subscribing to event topic: {0!r}'.format(topic))
-
     # add new make web playable without encoding
+
+    # Note, we are forcing the priority to a higher value (20)
+    # than the default one (50) so we can intercept the old event
+    # and stop it before it gets triggered, allowing us to override its behaviour.
+
     session.event_hub.subscribe(
         u'topic="{0}" and source.user.username="{1}"'.format(
             topic, session.api_user

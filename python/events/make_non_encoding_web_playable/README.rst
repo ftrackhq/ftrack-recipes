@@ -19,8 +19,8 @@ Scope
 Install and setup
 -----------------
 
-a. Make the location plugin available to the API either by setting the 
-FTRACK_EVENT_PLUGIN_PATH environment variable to <custom-location-folder>. 
+1) Make the required executables available on the system path
+2) Copy the plugin to the connect plugin directory
 
 
 Dependencies
