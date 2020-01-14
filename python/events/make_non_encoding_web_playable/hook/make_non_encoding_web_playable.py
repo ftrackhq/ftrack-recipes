@@ -9,7 +9,7 @@ import tempfile
 import subprocess
 import ftrack_api.session
 
-logger = logging.getLogger('ftrack.connect.publish.make-non-encode-web-playable')
+logger = logging.getLogger('com.ftrack.recipes.make-non-encode-web-playable')
 
 #change these to match full path to the exact executables.
 ffmpeg_cmd = 'ffmpeg'
