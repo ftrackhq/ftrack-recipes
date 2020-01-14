@@ -37,11 +37,16 @@ def generate_thumbnail(filepath):
     '''generate thumbnail from the given *filepath*'''
     destination = tempfile.NamedTemporaryFile(suffix='.jpg').name
 
-    cmd = [
-        ffmpeg_cmd, '-v', 'error', '-i', filepath, '-filter:v',
-        'scale=300:-1', '-ss', '0', '-an', '-vframes', '1', '-vcodec',
-        'mjpeg', '-f', 'image2', destination
-    ]
+    cmd = [ffmpeg_cmd]
+    cmd += ['-v', 'error']
+    cmd += ['-i', filepath]
+    cmd += ['-filter:v', 'scale=300:-1']
+    cmd += ['-ss', '0']
+    cmd += ['-an', '-vframes', '1']
+    cmd += ['-vcodec', 'mjpeg']
+    cmd += ['-f', 'image2']
+    cmd += [destination]
+
     exec_cmd(cmd)
     return destination
 
