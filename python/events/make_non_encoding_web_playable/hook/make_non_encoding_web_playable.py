@@ -109,8 +109,6 @@ def callback(event, session):
     '''
     # http://ftrack-python-api.rtd.ftrack.com/en/stable/example/web_review.html?highlight=reviewable
 
-    # disable previous event
-    event.stop()
 
     # run new event
     server_location = session.get(
@@ -136,6 +134,9 @@ def callback(event, session):
             '"{0}" is not in a valid file format.'.format(path)
         )
         return
+    
+    # disable previous event if we are in any accepted format.
+    event.stop()
 
     # publish the file for review without re encoding.
     component = version.create_component(
