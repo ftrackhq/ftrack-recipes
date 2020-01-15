@@ -122,7 +122,6 @@ def callback(event, session):
     path = event['data']['path']
 
     version = session.get('AssetVersion', version_id)
-    session.commit()
 
     # Validate that the path is an accessible file.
     if not os.path.isfile(path):
@@ -133,9 +132,10 @@ def callback(event, session):
     # Validate file is of the supported format
     _, file_extension = os.path.splitext(path)
     if file_extension not in ENCODING_SUPPORTED_EXTENSIONS_VIDEO:
-        raise ValueError(
+        logger.error(
             '"{0}" is not in a valid file format.'.format(path)
         )
+        return
 
     # publish the file for review without re encoding.
     component = version.create_component(
@@ -163,7 +163,7 @@ def subscribe(session):
     # add new make web playable without encoding
 
     # Note, we are forcing the priority to a higher value (20)
-    # than the default one (50) so we can intercept the old event
+    # than the default one (100) so we can intercept the old event
     # and stop it before it gets triggered, allowing us to override its behaviour.
 
     session.event_hub.subscribe(
