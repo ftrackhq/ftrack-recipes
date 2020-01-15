@@ -27,16 +27,20 @@ ffprobe_cmd = 'ffprobe'
 
 def exec_cmd(cmd):
     '''execute the provided *cmd*'''
-    process = subprocess.Popen(
-        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-    )
-    (stdout, stderr) = process.communicate()
+    try:
+        process = subprocess.Popen(
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+        (stdout, stderr) = process.communicate()
+    except Exception:
+        logger.exception(u'Failed to exectue command "{}"'.format(cmd[0]))
+        raise
 
     if process.returncode:
         logger.error(
             (
-                'Subprocess failed, dumping output:'
-                '--------------- {0} -----------------'
+                'Subprocess failed, dumping output:\n'
+                '--------------- {0} -----------------\n'
                 '{1}'
                 '--------------------------------------'
             ).format(cmd[0], stderr)
