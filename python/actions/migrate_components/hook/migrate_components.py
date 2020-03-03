@@ -212,7 +212,7 @@ def register(api_object, **kw):
 if __name__ == '__main__':
     # To be run as standalone code.
     logging.basicConfig(level=logging.INFO)
-    session = ftrack_api.Session()
+    session = ftrack_api.Session(auto_connect_event_hub=True)
     register(session)
 
     # Wait for events
