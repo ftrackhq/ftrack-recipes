@@ -359,7 +359,7 @@ def main(arguments=None):
     # Set up basic logging
     logging.basicConfig(level=loggingLevels[namespace.verbosity])
 
-    session = ftrack_api.Session()
+    session = ftrack_api.Session(auto_connect_event_hub=True)
     register(session)
 
     # Wait for events
