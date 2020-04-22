@@ -15,7 +15,8 @@ this_dir = os.path.abspath(os.path.dirname(__file__))
 
 class TemplatedStructure(ftrack_api.structure.standard.StandardStructure):
 
-    location_name = 'recipe.templated-structure'
+    description = 'Templated example structure from ftrack-recipes'
+    name = 'recipe.templated-structure'
     mount_points = {
         'windows': 'P://ftrack_projects',
         'linux': '/mnt/zeus/storage/ftrack/projects',
@@ -108,7 +109,10 @@ def configure_location(session, event):
 
     # Ensure new location.
     my_location = session.ensure(
-        'Location', {'name': TemplatedStructure.location_name}
+        'Location', {
+            'name': TemplatedStructure.name,
+            'description': TemplatedStructure.description
+        }
     )
 
     ftrack_api.mixin(
@@ -136,7 +140,7 @@ def configure_location(session, event):
     my_location.accessor = my_accessor
 
     # Set priority.
-    my_location.priority = 0
+    my_location.priority = 30
 
     logging.info('Setting {} to {}'.format(
         structure, my_location
@@ -191,6 +195,7 @@ if __name__ == '__main__':
     session = ftrack_api.Session(auto_connect_event_hub=True)
     register(session)
     logging.info(
-        'Registered actions and listening for events. Use Ctrl-C to abort.'
+        'Registered location {} and listening'
+        ' for events. Use Ctrl-C to abort.'.format(TemplatedStructure.name)
     )
     session.event_hub.wait()
