@@ -24,8 +24,7 @@ SOURCE_PATH = os.path.join(ROOT_PATH, 'source')
 README_PATH = os.path.join(ROOT_PATH, 'README.rst')
 RESOURCE_PATH = os.path.join(ROOT_PATH, 'resource')
 HOOK_PATH = os.path.join(RESOURCE_PATH, 'hook')
-LOCATION_PATH = os.path.join(RESOURCE_PATH, 'location')
-
+TEMPLATES_PATH = os.path.join(RESOURCE_PATH, 'templates')
 
 # Read version from source.
 with open(os.path.join(
@@ -61,14 +60,14 @@ class BuildPlugin(Command):
 
         # Copy hook files
         shutil.copytree(
-            LOCATION_PATH,
-            os.path.join(STAGING_PATH, 'location')
-        )
-
-        # Copy hook files
-        shutil.copytree(
             HOOK_PATH,
             os.path.join(STAGING_PATH, 'hook')
+        )
+
+        # Copy templates files
+        shutil.copytree(
+            TEMPLATES_PATH,
+            os.path.join(STAGING_PATH, 'templates')
         )
 
         pip_main.main(
@@ -121,4 +120,6 @@ setup(
     cmdclass={
         'build_plugin': BuildPlugin,
     },
+    python_requires='>= 2.7.9, < 3.0'  # lucidity does not support yet python3
+
 )

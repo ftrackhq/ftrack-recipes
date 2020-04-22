@@ -2,8 +2,16 @@
 # :copyright: Copyright (c) 2014-2020 ftrack
 
 import os
+import sys
 import ftrack_api
 import logging
+
+
+dependencies_directory = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), '..', 'dependencies')
+)
+sys.path.append(dependencies_directory)
+
 
 from ftrack_action_handler.action import BaseAction
 

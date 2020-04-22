@@ -2,11 +2,19 @@
 # :copyright: Copyright (c) 2014-2020 ftrack
 
 import os
+import sys
 import logging
 import functools
 import platform
 import ftrack_api
 import ftrack_api.structure.standard
+
+
+dependencies_directory = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), '..', 'dependencies')
+)
+sys.path.append(dependencies_directory)
+
 import lucidity
 
 # Pick the current folder location name.
