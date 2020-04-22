@@ -94,6 +94,8 @@ class TemplatedStructure(ftrack_api.structure.standard.StandardStructure):
 def configure_location(session, event):
     '''Configure locations for *session* and *event*.'''
 
+    logging.info('Configuring location....')
+
     # Ensure environment variables options are available in event.
     if 'options' not in event['data']:
         event['data']['options'] = {'env': {}}
