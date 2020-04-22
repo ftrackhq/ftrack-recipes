@@ -5,7 +5,8 @@
 ftrack python recipes
 =====================
 In this repository, you'll be able to find working example code
-regarding action, events and python api usage in general.
+regarding action, events and python api and plugins usage in general.
+
 
 ftrack Api documentation
 ^^^^^^^^^^^^^^^^^^^^^^^^
