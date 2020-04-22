@@ -1,0 +1,84 @@
+# :coding: utf-8
+# :copyright: Copyright (c) 2014-2020 ftrack
+
+import os
+import ftrack_api
+import logging
+
+from ftrack_action_handler.action import BaseAction
+
+logger = logging.getLogger(__file__)
+
+
+class GenearateFolderStructureAction(BaseAction):
+    '''Create report action class.'''
+
+    label = 'Generate Folder Structure'
+    identifier = 'com.ftrack.recipes.generate-folder-structure'
+    description = 'Generate folder structure from the selected project.'
+
+    @property
+    def session(self):
+        '''Return convenient exposure of the self._session reference.'''
+        return self._session
+
+    def validate_selection(self, entities):
+        '''Return True if the selection is valid.
+
+        Utility method to check *entities* validity.
+
+        '''
+        print entities
+        if not entities:
+            return False
+
+        entity_type, entity_id = entities[0]
+        if entity_type == 'Project':
+            return True
+
+        return False
+
+    def discover(self, session, entities, event):
+        '''Return True if the action can be discovered.
+
+        Check if the current selection can discover this action.
+
+        '''
+        return self.validate_selection(entities)
+
+    def launch(self, session, entities, event):
+        location = self.session.pick_location()
+        prefix = location.accessor.prefix
+        templates = location.structure._templates
+
+        project = self.session.get('Project', entities[0][1])
+
+        shots = self.session.query(
+            'select name from Shot where project.id is "{}"'.format(
+                entities[0][1]
+            )
+        ).all()
+
+        for shot in shots:
+            data = {
+                'project': {'name': project['name']},
+                'shot': {'name': shot['name']}
+            }
+            for template in templates:
+                result_path = template.format(data)
+                full_result_path = os.path.join(prefix, result_path)
+                self.logger.info('Creating {}'.format(full_result_path))
+                os.makedirs(full_result_path)
+
+        return True
+
+
+def register(api_object, **kw):
+    '''Register hook with provided *api_object*.'''
+    # Validate that session is an instance of ftrack_api.Session. If not,
+    # assume that register is being called from an old or incompatible API and
+    # return without doing anything.
+    if not isinstance(api_object, ftrack_api.session.Session):
+        return
+    action = GenearateFolderStructureAction(api_object)
+    action.register()
