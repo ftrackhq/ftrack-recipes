@@ -4,23 +4,21 @@
 import os
 import logging
 import functools
-
+import platform
 import ftrack_api
 import ftrack_api.structure.standard
-import ftrack_connect.application
 import lucidity
 
 # Pick the current folder location name.
 this_dir = os.path.abspath(os.path.dirname(__file__))
 
 
-
 class TemplatedStructure(ftrack_api.structure.standard.StandardStructure):
 
     location_name = 'recipe.templated-structure'
     mount_points = {
-        'win32': 'P://ftrack_projects',
-        'linux2': '/mnt/projects',
+        'windows': 'P://ftrack_projects',
+        'linux': '/mnt/zeus/storage/ftrack/projects',
         'darwin': '/mnt/projects'
     }
 
@@ -103,11 +101,10 @@ def configure_location(session, event):
 
     # Add this script path to the FTRACK_EVENT_PLUGIN_PATH.
     location_path = os.path.normpath(this_dir)
-    ftrack_connect.application.appendPath(
+    environment['FTRACK_EVENT_PLUGIN_PATH'] = os.pathsep.join([
         location_path,
-        'FTRACK_EVENT_PLUGIN_PATH',
-        environment
-    )
+        environment.get('FTRACK_EVENT_PLUGIN_PATH', '')
+    ])
 
     # Ensure new location.
     my_location = session.ensure(
@@ -127,7 +124,7 @@ def configure_location(session, event):
     # Set new structure in location.
     my_location.structure = structure
 
-    mount_point = TemplatedStructure.mount_points.get(os.platform)
+    mount_point = TemplatedStructure.mount_points.get(platform.system().lower())
     # Create new Accessor
     if os.path.exists(mount_point):
         my_accessor = ftrack_api.accessor.disk.DiskAccessor(mount_point)
@@ -139,7 +136,7 @@ def configure_location(session, event):
     my_location.accessor = my_accessor
 
     # Set priority.
-    my_location.priority = 30
+    my_location.priority = 0
 
     logging.info('Setting {} to {}'.format(
         structure, my_location
@@ -185,3 +182,15 @@ def register(api_object):
         functools.partial(configure_location, api_object),
         priority=0
     )
+
+
+if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO)
+    # Remember, in version version 2.0 of the ftrack-python-api the default
+    # behavior will change from True to False.
+    session = ftrack_api.Session(auto_connect_event_hub=True)
+    register(session)
+    logging.info(
+        'Registered actions and listening for events. Use Ctrl-C to abort.'
+    )
+    session.event_hub.wait()
