@@ -1,10 +1,10 @@
 # :coding: utf-8
-# :copyright: Copyright (c) 2018 ftrack
+# :copyright: Copyright (c) 2014-2020 ftrack
+
 
 import os
 import re
 import shutil
-import sys
 
 from pkg_resources import parse_version
 import pip
