@@ -1,6 +1,12 @@
 ..
     :copyright: Copyright (c) 2014-2020 ftrack
 
+
+.. warning::
+
+    This plugin works only on python 2.7 for current limitation on the library used.
+
+
 ===================
 Templated Structure
 ===================
@@ -21,3 +27,7 @@ Dependencies
 * lucidity
 * ftrack-action-handler
 
+
+.. note::
+
+    For the template Syntax please please refer to the lucidity `manual <https://lucidity.readthedocs.io/en/stable/>`_
