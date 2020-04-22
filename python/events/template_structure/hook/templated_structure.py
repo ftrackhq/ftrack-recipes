@@ -13,16 +13,15 @@ import lucidity
 # Pick the current folder location name.
 this_dir = os.path.abspath(os.path.dirname(__file__))
 
-# Define location name.
 
 
 class TemplatedStructure(ftrack_api.structure.standard.StandardStructure):
 
     location_name = 'recipe.templated-structure'
     mount_points = {
-        'windows': 'P://ftrack_projects',
-        'linux': '/mnt/projects',
-        'osx': '/mnt/projects'
+        'win32': 'P://ftrack_projects',
+        'linux2': '/mnt/projects',
+        'darwin': '/mnt/projects'
     }
 
     def __init__(self, templates):
@@ -111,7 +110,10 @@ def configure_location(session, event):
     )
 
     # Ensure new location.
-    my_location = session.ensure('Location', {'name': self.location_name})
+    my_location = session.ensure(
+        'Location', {'name': TemplatedStructure.location_name}
+    )
+
     ftrack_api.mixin(
         my_location, ftrack_api.entity.location.UnmanagedLocationMixin
     )
@@ -125,6 +127,7 @@ def configure_location(session, event):
     # Set new structure in location.
     my_location.structure = structure
 
+    mount_point = TemplatedStructure.mount_points.get(os.platform)
     # Create new Accessor
     if os.path.exists(mount_point):
         my_accessor = ftrack_api.accessor.disk.DiskAccessor(mount_point)
