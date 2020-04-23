@@ -1,3 +1,0 @@
-ftrack-action-handler
-ftrack-python-api
-lucidity

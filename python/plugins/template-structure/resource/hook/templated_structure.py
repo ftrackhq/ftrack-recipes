@@ -30,6 +30,7 @@ class TemplatedStructure(ftrack_api.structure.standard.StandardStructure):
         'linux': '/mnt/zeus/storage/ftrack/projects',
         'darwin': '/mnt/projects'
     }
+    template_name = 'project-base-example'
 
     def __init__(self, templates):
         super(TemplatedStructure, self).__init__()
@@ -41,15 +42,14 @@ class TemplatedStructure(ftrack_api.structure.standard.StandardStructure):
         Raise :py:exc:`ValueError` if a template for the *component* is not
         found.
         '''
-        template_name = 'project-base-maya'
 
         for template in self._templates:
-            if template.name == template_name:
+            if template.name == self.template_name:
                 return template
 
         raise ValueError(
             'Template name {0} was not found in input templates'.format(
-                template_name
+                self.template_name
             )
         )
 
@@ -68,6 +68,8 @@ class TemplatedStructure(ftrack_api.structure.standard.StandardStructure):
         # Construct template data.
         project = version['asset']['parent']['project']
         shot = version['asset']['parent']['parent']
+        sequence = version['asset']['parent']['parent']['parent']
+        task = version['asset']['task']
 
         template_data = {
             'shot': {
@@ -75,6 +77,15 @@ class TemplatedStructure(ftrack_api.structure.standard.StandardStructure):
             },
             'project': {
                 'name': project['name']
+            },
+            'sequence': {
+                'name': sequence['name']
+            },
+            'task': {
+                'name': task['name']
+            },
+            'asset': {
+                'version': version['version']
             }
         }
 

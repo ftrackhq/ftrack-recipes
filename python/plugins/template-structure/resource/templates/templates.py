@@ -5,34 +5,54 @@
 import os
 from lucidity import Template
 
+separator = os.path.sep
+
+project_reference = Template('project_reference', '{project.name}')
+version_reference = Template('version_reference', separator.join([
+    'publish',
+    '{asset.name}'
+    'version_{asset.version}'
+]))
+
+
+shot_template = Template(
+    'shot_template', separator.join([
+        '{@project_reference}',
+        'sequences',
+        '{sequence.name}_{shot.name}',
+        '{task.type}',
+        '{task.name}',
+        '{@version_reference}'
+    ]),
+    template_resolver=dict([
+        (project_reference.name, project_reference),
+        (version_reference.name, version_reference)
+    ])
+)
+
+asset_template = Template(
+    'asset_template', separator.join([
+        '{@project_reference}',
+        'assets',
+        '{assetbuild.type}',
+        '{assetbuild.name}',
+        '{task.type}',
+        '{task.name}',
+        '{@version_reference}'
+    ]),
+    template_resolver=dict([
+        (project_reference.name, project_reference),
+        (version_reference.name, version_reference)
+    ])
+)
+
 
 def register():
     '''Register templates.'''
-    projectBase = '{project.name}/CG/A_PROJ/{shot.name}'
-    separator = os.path.sep
 
     return [
-        Template('project-base-ae', separator.join([projectBase, 'AE'])),
-        Template('project-base-c4d', separator.join([projectBase, 'C4D'])),
-        Template('project-base-maya', separator.join([projectBase, 'MAYA'])),
-        Template('project-base-nuke', separator.join([projectBase, 'NUKE'])),
-        Template('project-cg-media-reference', '{project.name}/CG/B_MEDIA/REFERENCE'),
-        Template('project-cg-media-stills-raster-fromclient', '{project.name}/CG/B_MEDIA/STILLS/RASTER'),
-        Template('project-cg-media-stills-vector-fromclient', '{project.name}/CG/B_MEDIA/STILLS/VECTOR'),
-        Template('project-cg-media-video-forcomp-3dassets', '{project.name}/CG/B_MEDIA/VIDEO/FOR_COMP/3D_ASSETS'),
-        Template('project-cg-media-video-forcomp-c4dimages', '{project.name}/CG/B_MEDIA/VIDEO/FOR_COMP/C4D_IMAGES'),
-        Template('project-cg-media-video-forcomp-fromedit', '{project.name}/CG/B_MEDIA/VIDEO/FOR_COMP/FROM_EDIT'),
-        Template('project-cg-media-video-forcomp-mayaimages', '{project.name}/CG/B_MEDIA/VIDEO/FOR_COMP/MAYA_IMAGES'),
-        Template('project-cg-media-video-forcomp-prerender', '{project.name}/CG/B_MEDIA/VIDEO/FOR_COMP/PRERENDER'),
-        Template('project-cg-media-video-forcomp-stock', '{project.name}/CG/B_MEDIA/VIDEO/FOR_COMP/STOCK'),
-        Template('project-cg-media-video-renders', '{project.name}/CG/B_MEDIA/VIDEO/RENDERS'),
-        Template('project-shared-dailies', '{project.name}/SHARED/DAILIES'),
-        Template('project-shared-forcg', '{project.name}/SHARED/FOR_CG'),
-        Template('project-shared-foredit', '{project.name}/SHARED/FOR_EDIT'),
-        Template('project-shared-prjdocs-boards', '{project.name}/SHARED/PRJ_DOCS/BOARDS'),
-        Template('project-shared-prjdocs-brief', '{project.name}/SHARED/PRJ_DOCS/BRIEF'),
-        Template('project-shared-prjdocs-fonts', '{project.name}/SHARED/PRJ_DOCS/FONTS'),
-        Template('project-shared-prjdocs-fromclient', '{project.name}/SHARED/PRJ_DOCS/FROM_CLIENT'),
-        Template('project-shared-prjdocs-reviewnotes', '{project.name}/SHARED/PRJ_DOCS/REVIEW_NOTES'),
-        Template('project-shared-prjdocs-script', '{project.name}/SHARED/PRJ_DOCS/SCRIPT')
+        project_reference,
+        version_reference,
+        shot_template,
+        asset_template
     ]

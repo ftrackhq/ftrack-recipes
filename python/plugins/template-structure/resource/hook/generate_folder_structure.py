@@ -5,7 +5,7 @@ import os
 import sys
 import ftrack_api
 import logging
-
+from pprint import pformat
 
 dependencies_directory = os.path.abspath(
     os.path.join(os.path.dirname(__file__), '..', 'dependencies')
@@ -60,24 +60,43 @@ class GenearateFolderStructureAction(BaseAction):
         prefix = location.accessor.prefix
         templates = location.structure._templates
 
-        project = self.session.get('Project', entities[0][1])
-
-        shots = self.session.query(
-            'select name from Shot where project.id is "{}"'.format(
-                entities[0][1]
-            )
+        # assets might not be existing ....
+        contexts = session.query(
+            'TypedContext where project.id is "{}"'.format(entities[0][1])
         ).all()
 
-        for shot in shots:
-            data = {
-                'project': {'name': project['name']},
-                'shot': {'name': shot['name']}
-            }
+        for context in contexts:
+            data = {}
+            for link in context['link']:
+                entity_type = session.get(
+                    link['type'],
+                    link['id']
+                ).entity_type.lower()
+                data[entity_type] = {'name': link['name'].lower()}
+
+            # data['asset'] = {
+            #     'version': version['version'],
+            #     'name': version['asset']['name'].lower()
+            # }
+            # data['task'] = {
+            #     'type': version['task']['type']['name'].lower(),
+            #     'name': version['task']['name'].lower()
+            # }
+
+            print 'data {}'.format(pformat(data))
+
             for template in templates:
-                result_path = template.format(data)
+
+                try:
+                    result_path = template.format(data)
+                except Exception as error:
+                    self.logger.warning(str(error))
+                    continue
+
                 full_result_path = os.path.join(prefix, result_path)
                 self.logger.info('Creating {}'.format(full_result_path))
-                os.makedirs(full_result_path)
+                if not os.path.exists(full_result_path):
+                    os.makedirs(full_result_path)
 
         return True
 
