@@ -72,7 +72,11 @@ class GenearateFolderStructureAction(BaseAction):
                     link['type'],
                     link['id']
                 ).entity_type.lower()
-                data[entity_type] = {'name': link['name'].lower()}
+
+                data[entity_type] = {
+                    'name': link['name'].lower(),
+                    'type': entity_type
+                }
 
             # data['asset'] = {
             #     'version': version['version'],
