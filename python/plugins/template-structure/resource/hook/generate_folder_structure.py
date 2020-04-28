@@ -78,17 +78,6 @@ class GenearateFolderStructureAction(BaseAction):
                     'type': entity_type
                 }
 
-            # data['asset'] = {
-            #     'version': version['version'],
-            #     'name': version['asset']['name'].lower()
-            # }
-            # data['task'] = {
-            #     'type': version['task']['type']['name'].lower(),
-            #     'name': version['task']['name'].lower()
-            # }
-
-            print 'data {}'.format(pformat(data))
-
             for template in templates:
 
                 try:
@@ -101,6 +90,8 @@ class GenearateFolderStructureAction(BaseAction):
                 self.logger.info('Creating {}'.format(full_result_path))
                 if not os.path.exists(full_result_path):
                     os.makedirs(full_result_path)
+                else:
+                    self.logger('skipping {} as it already exist.'.format(full_result_path))
 
         return True
 

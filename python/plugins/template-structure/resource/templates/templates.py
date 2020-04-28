@@ -1,71 +1,47 @@
 # :coding: utf-8
 # :copyright: Copyright (c) 2014-2020 ftrack
 
-
 import os
-from lucidity import Template
+import lucidity
 
-separator = os.path.sep
+sep = os.path.sep
 
-# define project template reference
-project_reference = Template('project_reference', '{project.name}')
+# https://gitlab.com/4degrees/lucidity/-/issues/32
+# template wrapper
+class TemplateCollection(dict):
 
-# define version template reference
-version_reference = Template('version_reference', separator.join([
-    'publish',
-    '{asset.name}'
-    'version_{asset.version}'
-]))
+    def add(self, key, pattern, **lucidityKwargs):
+        kwargs = {'template_resolver': self}
+        kwargs.update(**lucidityKwargs)
+        template = lucidity.Template(key, pattern, **kwargs)
+        self.__setitem__(key, template)
 
-# define generic task template reference
-task_reference = Template('shot_task_reference', separator.join([
-    '{task.type}',
-    '{task.name}',
-    '{@version_reference}'
-    ]),
-    template_resolver=dict([
-        (version_reference.name, version_reference)
-    ])
-    )
+    def __repr__(self):
+        return '<TemplateCollection of {0} templates.>'.format(len(self))
 
-# define shot template reference
-shot_template = Template(
-    'shot_template', separator.join([
-        '{@project_reference}',
-        'sequences',
-        '{sequence.name}_{shot.name}',
-        '{@task_reference}'
+    def __str__(self):
+        return str(dict(self))
 
-    ]),
-    template_resolver=dict([
-        (project_reference.name, project_reference),
-        (task_reference.name, task_reference)
-    ])
-)
 
-# define asset template reference
-asset_template = Template(
-    'asset_template', separator.join([
-        '{@project_reference}',
-        'assets',
-        '{assetbuild.type}',
-        '{assetbuild.name}',
-        '{@task_reference}'
-    ]),
-    template_resolver=dict([
-        (project_reference.name, project_reference),
-        (task_reference.name, task_reference)
-    ])
-)
+templates = TemplateCollection()
+# template fragments
+templates.add('project', '{project.name}')
+templates.add('task', sep.join(['{task.type}', '{task.name}']))
+templates.add('version', sep.join(['publish',  '{asset.name}', 'version_{asset.version}']))
+
+# asset templates
+templates.add('assets', sep.join(['{@project}', 'assets', '{assetbuild.name}']))
+templates.add('assets_task', sep.join(['{@assets}', '{@task}']))
+templates.add('assets_task_version', sep.join(['{@assets_task}', '{@version}']))
+
+# shot template
+templates.add('shots', sep.join(['{@project}', 'sequences', '{sequence.name}_{shot.name}']))
+templates.add('shots_task', sep.join(['{@shots}', '{@task}']))
+templates.add('shots_task_version', sep.join(['{@shots_task}', '{@version}']))
+
 
 
 def register():
     '''Register templates.'''
 
-    return [
-        project_reference,
-        version_reference,
-        task_reference,
-        shot_template,
-        asset_template
-    ]
+    return templates.values()
