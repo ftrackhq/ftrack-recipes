@@ -105,7 +105,8 @@ setup(
         '': 'source'
     },
     install_requires=[
-        'ftrack-action-handler'
+        'ftrack-action-handler',
+        'lucidity'
     ],
     tests_require=[
     ],
