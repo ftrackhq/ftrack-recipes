@@ -30,28 +30,32 @@ class TemplatedStructure(ftrack_api.structure.standard.StandardStructure):
         'linux': '/mnt/zeus/storage/ftrack/projects',
         'darwin': '/mnt/projects'
     }
-    template_name = 'project-base-example'
 
     def __init__(self, templates):
         super(TemplatedStructure, self).__init__()
-        self._templates = templates
+        self.logger = logging.getLogger(
+            __name__ + '.' + self.__class__.__name__
+        )
 
-    def _get_template_from_component(self, component):
-        '''Return template from *component*.
+        self._templates = templates
+        self._template_filter = 'version' # assets can be published only under a version template
+
+    def _get_templates(self, component):
+        '''Return version template from *component*.
 
         Raise :py:exc:`ValueError` if a template for the *component* is not
         found.
         '''
-
+        templates = []
         for template in self._templates:
-            if template.name == self.template_name:
-                return template
+            if self._template_filter in template.name:
+                self.logger.info('adding {}'.format(template.name))
+                templates.append(template)
 
-        raise ValueError(
-            'Template name {0} was not found in input templates'.format(
-                self.template_name
-            )
-        )
+        if not templates:
+            raise ValueError('No version template found!')
+
+        return templates
 
     def get_resource_identifier(self, entity, context=None):
         '''Return a resource identifier from *component*.
@@ -65,29 +69,26 @@ class TemplatedStructure(ftrack_api.structure.standard.StandardStructure):
                 'Input component is expected to be connected to a version.'
             )
 
-        # Construct template data.
-        project = version['asset']['parent']['project']
-        shot = version['asset']['parent']['parent']
-        sequence = version['asset']['parent']['parent']['parent']
-        task = version['asset']['task']
+        data = {}
+        context = version['asset']['parent']
+        for link in context['link']:
+            entity_type = entity.session.get(
+                link['type'],
+                link['id']
+            ).entity_type.lower()
 
-        template_data = {
-            'shot': {
-                'name': shot['name']
-            },
-            'project': {
-                'name': project['name']
-            },
-            'sequence': {
-                'name': sequence['name']
-            },
-            'task': {
-                'name': task['name']
-            },
-            'asset': {
-                'version': version['version']
+
+            data[entity_type] = {
+                'name': link['name'].lower(),
+                'type': entity_type
             }
-        }
+
+            data['asset'] = {
+                'name': version['asset']['name'],
+                'type': version['asset']['type']['name'],
+                'version': str(version['version'])
+            }
+
 
         # At the moment file names are not handled with lucidity. It can be done
         # but for the simplicity of this example the basename is just copied.
@@ -100,10 +101,21 @@ class TemplatedStructure(ftrack_api.structure.standard.StandardStructure):
         file_name = os.path.basename(standard_file_path)
 
         # Get a lucidity template and format with templateData.
-        template = self._get_template_from_component(entity)
+        templates = self._get_templates(entity)
+
+        file_path = None
+        for template in templates:
+            try:
+                file_path = template.format(data)
+            except Exception as error:
+                self.logger.warning(error)
+                continue
+
+        if not file_path:
+            raise IOError('No Valid template found')
 
         file_path = os.path.join(
-            template.format(template_data),
+            file_path,
             file_name
         )
 
