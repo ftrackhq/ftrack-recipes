@@ -55,6 +55,8 @@ class GenearateFolderStructureAction(BaseAction):
         return self.validate_selection(entities)
 
     def launch(self, session, entities, event):
+        '''Launch the action'''
+
         location = self.session.pick_location()
         self.logger.info('Using location {}'.format(location['name']))
         prefix = location.accessor.prefix
@@ -91,7 +93,11 @@ class GenearateFolderStructureAction(BaseAction):
                 if not os.path.exists(full_result_path):
                     os.makedirs(full_result_path)
                 else:
-                    self.logger.warning('skipping {} as it already exist.'.format(full_result_path))
+                    self.logger.warning(
+                        'skipping {} as it already exist.'.format(
+                            full_result_path
+                        )
+                    )
 
         return True
 

@@ -25,10 +25,11 @@ class TemplatedStructure(ftrack_api.structure.standard.StandardStructure):
 
     description = 'Templated example structure from ftrack-recipes'
     name = 'recipe.templated-structure'
+
     mount_points = {
-        'windows': 'P://ftrack_projects',
-        'linux': '/mnt/zeus/storage/ftrack/projects',
-        'darwin': '/mnt/projects'
+        'windows': 'P://ftrack/projects',
+        'linux': '/mnt/ftrack/projects',
+        'darwin': '/mnt/ftrack/projects'
     }
 
     def __init__(self, templates):
@@ -38,14 +39,17 @@ class TemplatedStructure(ftrack_api.structure.standard.StandardStructure):
         )
 
         self._templates = templates
-        self._template_filter = 'version' # assets can be published only under a version template
+        
+        # assets can be published only under a version template
+        self._template_filter = 'version' 
 
     def _get_templates(self, component):
         '''Return version template from *component*.
 
-        Raise :py:exc:`ValueError` if a template for the *component* is not
-        found.
+        We expect to find at least one template containing teh template_filter
+        word (version) in order to be able to publish
         '''
+
         templates = []
         for template in self._templates:
             if self._template_filter in template.name:
@@ -92,7 +96,6 @@ class TemplatedStructure(ftrack_api.structure.standard.StandardStructure):
 
         # At the moment file names are not handled with lucidity. It can be done
         # but for the simplicity of this example the basename is just copied.
-
         standard_file_path = super(
             TemplatedStructure, self
         ).get_resource_identifier(
