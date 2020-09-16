@@ -1,4 +1,5 @@
-    :copyright: Copyright (c) 2018 ftrack
+..
+    :copyright: Copyright (c) 2014-2020 ftrack
 
 ============
 ftrack tools

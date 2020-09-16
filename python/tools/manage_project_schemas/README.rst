@@ -1,5 +1,5 @@
 ..
-    :copyright: Copyright (c) 2018 ftrack
+    :copyright: Copyright (c) 2014-2020 ftrack
 
 ======================
 Manage Project Schemas
@@ -26,7 +26,7 @@ Backing up a specific schema:
 
 .. code-block:: python
 
-     python manage_project_schemas.py backup --schema=VFX --filename=/tmp/test.json
+     python manage_project_schemas.py backup --schema VFX --filename /tmp/test.json
 ..
 
 
@@ -34,7 +34,7 @@ Restoring:
 
 .. code-block:: python
 
-     python manage_project_schemas.py restore --schema==VFX --restore=VFX2 --filename=/tmp/test.json
+     python manage_project_schemas.py restore --schema VFX --destination VFX2 --filename /tmp/test.json
 ..
 
 
