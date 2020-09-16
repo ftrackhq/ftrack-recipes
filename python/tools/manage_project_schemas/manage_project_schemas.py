@@ -270,6 +270,7 @@ class ManageProjectSchemas(object):
         else:
             logger.warning('Dry run, not writing JSON to {}.'.format(self.filename))
 
+
     def load_schemas(self):
 
         def get_object_type(name):
@@ -360,8 +361,10 @@ class ManageProjectSchemas(object):
                     self.args.destination is not None else project_schema['name']
             ft_project_schema = self.session.create('ProjectSchema', {
                 'name': new_name,
-                'task_workflow_schema_id': get_workflow_schema(project_schema['task_workflow_schema'])['id'],
-                'task_type_schema_id': get_task_schema(project_schema['task_type_schema'])['id'],
+                'task_workflow_schema_id':
+                    get_workflow_schema(project_schema['task_workflow_schema'])['id'],
+                'task_type_schema_id':
+                    get_task_schema(project_schema['task_type_schema'])['id'],
                 'asset_version_workflow_schema_id':
                     get_workflow_schema(project_schema['asset_version_workflow_schema'])['id']
             })
@@ -369,6 +372,7 @@ class ManageProjectSchemas(object):
             if self.args.verbose: self.dump(ft_project_schema, indent=1)
 
             # Deserialize and store definitions for schema
+            # Note that milestone and task already gets created with the schema
             logger.info((4 * ' ') + 'Restoring object_types(Objects)...')
             for object_type in project_schema['object_types']:
                 if object_type['name'].lower() == 'task':
@@ -391,10 +395,12 @@ class ManageProjectSchemas(object):
                     logger.info((8 * ' ') + 'Restoring schema for type {}...'.format(
                         object_type['name']))
 
+                # Find the schema that corresponds to type
                 for object_type_schema in project_schema['object_type_schemas']:
                     if object_type_schema['type'] != object_type['name']:
                         continue
 
+                    # Create the schema
                     ft_object_type_schema = self.session.create('Schema', {
                         'project_schema_id': ft_project_schema['id'],
                         'object_type_id': ft_object_type['id']
@@ -404,6 +410,7 @@ class ManageProjectSchemas(object):
                         ft_object_type['name'], object_type_schema['statuses'], object_type_schema['types']))
                     if self.args.verbose: self.dump(ft_object_type_schema, indent=2)
 
+                    # Restore its types
                     for type_name in object_type_schema['types']:
                         ft_st = self.session.create('SchemaType', {
                             'schema_id': ft_object_type_schema['id'],
@@ -412,6 +419,7 @@ class ManageProjectSchemas(object):
                         logger.info((16 * ' ') + '+ Type: {}'.format(type_name))
                         if self.args.verbose: self.dump(ft_st, indent=3)
 
+                    # And statuses
                     for status_name in object_type_schema['statuses']:
                         ft_ss = self.session.create('SchemaStatus', {
                             'schema_id': ft_object_type_schema['id'],
@@ -420,6 +428,7 @@ class ManageProjectSchemas(object):
                         logger.info((16 * ' ') + '+ Status: {}'.format(status_name))
                         if self.args.verbose: self.dump(ft_ss, indent=3)
 
+            # Restore overrides
             logger.info((4 * ' ') + 'Restoring task_workflow_schema_overrides(Task workflow, part of)...')
             for task_workflow_schema_override in project_schema['task_workflow_schema_overrides']:
                 ft_task_type = get_type(task_workflow_schema_override['type'])
@@ -431,6 +440,7 @@ class ManageProjectSchemas(object):
                 if self.args.verbose: self.dump(ft_psso, indent=2)
                 logger.info((8 * ' ') + 'Created override for type {0}...'.format(ft_task_type['name']))
 
+            # Restore task templates and their types
             logger.info((4 * ' ') + 'Restoring task_templates(Task templates)...')
             for task_template in project_schema['task_templates']:
                 ft_task_template = self.session.create('TaskTemplate', {
@@ -458,7 +468,7 @@ class ManageProjectSchemas(object):
             except Exception as error:
                 self.logger.error(error, exc_info=True)
         else:
-            logger.info('[WARNING] NOT committing Project Schemas to Ftrack (dry run)...')
+            logger.warning('NOT committing Project Schemas to Ftrack (dry run)...')
 
 
 
