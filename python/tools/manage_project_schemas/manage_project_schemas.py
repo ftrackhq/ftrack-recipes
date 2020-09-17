@@ -32,8 +32,7 @@ class ManageProjectSchemas(object):
 
         self.parse_arguments()
 
-        self.result = dict(project_schemas=[], workflow_schemas=[], task_schemas=[])
-
+        # Cache up commonly used Ftrack entities
         logger.info('Loading object types from Ftrack...')
         self.object_types_by_id = {}
         for object_type in self.session.query('select id from ObjectType'):
@@ -49,19 +48,23 @@ class ManageProjectSchemas(object):
         for t in self.session.query('select id from Type'):
             self.types_by_id[t['id']] = t
 
+        self.result = dict(project_schemas=[], workflow_schemas=[], task_schemas=[])
+
         if self.args.type == "backup":
             self.save_schemas()
         elif self.args.type == "restore":
             self.load_schemas()
 
     def parse_arguments(self):
-
+        """ Parse arguments passed to us. """
         self.parser = argparse.ArgumentParser()
 
         self.parser.add_argument(
             'type',
-            help='Backup all ftrack project schemas to a JSON file {0} in your current working \
-                directory.'.format(self.filename),
+            help=(
+                'Backup all ftrack project schemas to a JSON'
+                'file {0} in your current working directory.'.format(self.filename)
+            ),
             choices=['backup', 'restore']
         )
 
@@ -94,6 +97,7 @@ class ManageProjectSchemas(object):
             )
 
     def get_add_workflow_schema(self, ft_workflow_schema):
+        """ Find workflow schema by ID, serialise and add if not there. """
         for workflow_schema in self.result['workflow_schemas']:
             if workflow_schema['id'] == ft_workflow_schema['id']:
                 return workflow_schema['id']
@@ -114,6 +118,7 @@ class ManageProjectSchemas(object):
         return workflow_schema['id']
 
     def get_add_task_schema(self, ft_task_schema):
+        """ Find task schema by ID, serialise and add if not there. """
         for task_schema in self.result['task_schemas']:
             if task_schema['id'] == ft_task_schema['id']:
                 return task_schema['id']
@@ -134,6 +139,7 @@ class ManageProjectSchemas(object):
         return task_schema['id']
 
     def save_object_types(self, ft_project_schema, project_schema):
+        """ Save object_types(Objects). """
         logger.info((4 * ' ') + 'Backing up object_types(Objects)...')
         for ft_object_type in sorted(ft_project_schema['object_types'], key=lambda i: i['sort']):
             logger.info((8 * ' ') + 'Backing up object type {}...'.format(ft_object_type['name']))
@@ -147,6 +153,7 @@ class ManageProjectSchemas(object):
             project_schema['object_types'].append(object_type)
 
     def save_object_type_schemas(self, ft_project_schema, project_schema):
+        """ Save object_type_schemas(Shots, Asset builds etc). """
         logger.info((4 * ' ') + 'Backing up object_type_schemas(Shots, Asset builds etc)...')
         for ft_object_type_schema in ft_project_schema['object_type_schemas']:
             logger.info((8 * ' ') + 'Backing up {} schema...'.format(
@@ -165,6 +172,7 @@ class ManageProjectSchemas(object):
             project_schema['object_type_schemas'].append(object_type_schema)
 
     def save_task_templates(self, ft_project_schema, project_schema):
+        """ Save task_templates(Task templates)."""
         logger.info((4 * ' ') + 'Backing up task_templates(Task templates)...')
         for ft_task_template in ft_project_schema['task_templates']:
             logger.info((8 * ' ') + 'Backing up task template {}...'.format(ft_task_template['name']))
@@ -177,16 +185,19 @@ class ManageProjectSchemas(object):
             project_schema['task_templates'].append(task_template)
 
     def save_task_type_schema(self, ft_project_schema, project_schema):
+        """ Save task_type_schema (Tasks workflow, part of). """
         logger.info((4 * ' ') + 'Backing up task_type_schema (Tasks workflow, part of)...')
         ft_task_type_schema = ft_project_schema['task_type_schema']
         project_schema['task_type_schema'] = self.get_add_task_schema(ft_task_type_schema)
 
     def save_task_workflow_schema(self, ft_project_schema, project_schema):
+        """ Save task_workflow_schema (Tasks workflow, part of). """
         logger.info((4 * ' ') + 'Backing up task_workflow_schema (Tasks workflow, part of)...')
         ft_task_workflow_schema = ft_project_schema['task_workflow_schema']
         project_schema['task_workflow_schema'] = self.get_add_workflow_schema(ft_task_workflow_schema)
 
     def save_task_workflow_schema_overrides(self, ft_project_schema, project_schema):
+        """ Save task_workflow_schema_overrides (Tasks). """
         logger.info((4 * ' ') + 'Backing up task_workflow_schema_overrides (Tasks)...')
         for ft_task_workflow_schema_override in ft_project_schema['task_workflow_schema_overrides']:
             project_schema['task_workflow_schema_overrides'].append({
@@ -195,11 +206,13 @@ class ManageProjectSchemas(object):
             })
 
     def save_asset_version_workflow_schema(self, ft_project_schema, project_schema):
+        """ Save asset_version_workflow_schema(Versions). """
         logger.info((4 * ' ') + 'Backing up asset_version_workflow_schema(Versions)...')
         ft_workflow_schema = ft_project_schema['asset_version_workflow_schema']
         project_schema['asset_version_workflow_schema'] = self.get_add_workflow_schema(ft_workflow_schema)
 
     def save_schemas(self):
+        """ Read workflow schemas from Ftrack and write to JSON at disk. """
 
         logger.info('Loading Workflow Schemas from Ftrack...')
         workflow_schemas_by_id = {}
@@ -245,6 +258,7 @@ class ManageProjectSchemas(object):
             else:
                 logger.warning('No schemas were found!')
 
+        # Nothing written to disk yet, save it unless it is a dry run.
         if not self.args.dry_run:
             logger.info('Writing {}...'.format(self.args.filename))
             json.dump(self.result, open(self.args.filename, 'w'))
@@ -254,6 +268,7 @@ class ManageProjectSchemas(object):
             )
 
     def get_object_type(self, name):
+        """ Get Ftrack object type by name from pre-cached entries. """
         for ft_object_type in self.object_types_by_id.values():
             if ft_object_type['name'].lower() == name.lower():
                 return ft_object_type
@@ -262,6 +277,7 @@ class ManageProjectSchemas(object):
         ))
 
     def get_status(self, name):
+        """ Get Ftrack status type by name from pre-cached entries. """
         for ft_status in self.status_types_by_id.values():
             if ft_status['name'].lower() == name.lower():
                 return ft_status
@@ -270,6 +286,7 @@ class ManageProjectSchemas(object):
         ))
 
     def get_type(self, name):
+        """ Get Ftrack type by name from pre-cached entries. """
         for ft_type in self.types_by_id.values():
             if ft_type['name'].lower() == name.lower():
                 return ft_type
@@ -278,6 +295,7 @@ class ManageProjectSchemas(object):
         ))
 
     def get_workflow_schema(self, prev_id):
+        """ Get workflow schema JSON from result. """
         for workflow_schema in self.result.get('workflow_schemas'):
             if workflow_schema['id'] == prev_id:
                 return workflow_schema['entity']
@@ -287,6 +305,7 @@ class ManageProjectSchemas(object):
             ))
 
     def get_task_schema(self, prev_id):
+        """ Get task schema JSON from result. """
         for task_schema in self.result.get('task_schemas'):
             if task_schema['id'] == prev_id:
                 return task_schema['entity']
@@ -296,6 +315,7 @@ class ManageProjectSchemas(object):
             ))
 
     def load_schemas(self):
+        """ Load workflow schemas from JSON on disk and update Ftrack. """
 
         self.result = json.load(open(self.args.filename, 'r'))
 
@@ -437,6 +457,7 @@ class ManageProjectSchemas(object):
             else:
                 logger.warning('No schemas were found/JSON empty!')
 
+        # No changes has been made yet, commit to Ftrack unless dry run
         if not self.args.dry_run:
             logger.info('Committing Project Schemas to Ftrack...')
             try:
