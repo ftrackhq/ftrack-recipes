@@ -28,8 +28,11 @@ class ManageProjectSchemas(object):
         self.session = ftrack_api.Session()
 
         self.filename = 'project_schemas.json'
+        self.parser = self.args = None
 
         self.parse_arguments()
+
+        self.result = dict(project_schemas=[], workflow_schemas=[], task_schemas=[])
 
         logger.info('Loading object types from Ftrack...')
         self.object_types_by_id = {}
@@ -50,7 +53,6 @@ class ManageProjectSchemas(object):
             self.save_schemas()
         elif self.args.type == "restore":
             self.load_schemas()
-
 
     def parse_arguments(self):
 
@@ -87,7 +89,9 @@ class ManageProjectSchemas(object):
         self.args = self.parser.parse_args()
 
         if self.filename is None and self.args.schema:
-            self.filename = 'project_schemas{}.json'.format('_%s' % (self.args.schema) if self.args.schema else '')
+            self.filename = 'project_schemas{}.json'.format(
+                '_%s' .format(self.args.schema) if self.args.schema else ''
+            )
 
     def get_add_workflow_schema(self, ft_workflow_schema):
         for workflow_schema in self.result['workflow_schemas']:
@@ -151,11 +155,11 @@ class ManageProjectSchemas(object):
                 'type': self.object_types_by_id[ft_object_type_schema['type_id']]['name'],
                 'statuses': [
                     self.status_types_by_id[x['status_id']]['name'] for x in
-                             sorted(ft_object_type_schema['statuses'], key=lambda i: i['sort'])
+                    sorted(ft_object_type_schema['statuses'], key=lambda i: i['sort'])
                 ],
                 'types': [
                     self.types_by_id[x['type_id']]['name'] for x in
-                          sorted(ft_object_type_schema['types'], key=lambda i: i['sort'])
+                    sorted(ft_object_type_schema['types'], key=lambda i: i['sort'])
                 ],
             }
             project_schema['object_type_schemas'].append(object_type_schema)
@@ -197,8 +201,6 @@ class ManageProjectSchemas(object):
 
     def save_schemas(self):
 
-        self.result = dict(project_schemas=[], workflow_schemas=[], task_schemas=[])
-
         logger.info('Loading Workflow Schemas from Ftrack...')
         workflow_schemas_by_id = {}
         for workflow_schema in self.session.query('select id from WorkflowSchema'):
@@ -224,13 +226,13 @@ class ManageProjectSchemas(object):
 
             # Collect and serialize schema definitions
             for (key, fn) in {
-                'object_types':self.save_object_types,
-                'object_type_schemas':self.save_object_type_schemas,
-                'task_templates':self.save_task_templates,
-                'task_type_schema':self.save_task_type_schema,
-                'task_workflow_schema':self.save_task_workflow_schema,
-                'task_workflow_schema_overrides':self.save_task_workflow_schema_overrides,
-                'save_asset_version_workflow_schema':self.save_asset_version_workflow_schema
+                'object_types': self.save_object_types,
+                'object_type_schemas': self.save_object_type_schemas,
+                'task_templates': self.save_task_templates,
+                'task_type_schema': self.save_task_type_schema,
+                'task_workflow_schema': self.save_task_workflow_schema,
+                'task_workflow_schema_overrides': self.save_task_workflow_schema_overrides,
+                'save_asset_version_workflow_schema': self.save_asset_version_workflow_schema
             }.items():
                 if key in ft_project_schema:
                     fn(ft_project_schema, project_schema)
@@ -241,25 +243,33 @@ class ManageProjectSchemas(object):
             logger.info('Writing {}...'.format(self.args.filename))
             json.dump(self.result, open(self.args.filename, 'w'))
         else:
-            logger.warning('Dry run, not writing JSON {} to {}.'.format(json.dumps(self.result, indent=3), self.filename))
+            logger.warning('Dry run, not writing JSON {} to {}.'.format(
+                json.dumps(self.result, indent=3), self.filename)
+            )
 
     def get_object_type(self, name):
         for ft_object_type in self.object_types_by_id.values():
             if ft_object_type['name'].lower() == name.lower():
                 return ft_object_type
-        raise Exception('An unknown object type {} were encountered during restore!'.format(name))
+        raise Exception('An unknown object type {} were encountered during restore!'.format(
+            name
+        ))
 
     def get_status(self, name):
         for ft_status in self.status_types_by_id.values():
             if ft_status['name'].lower() == name.lower():
                 return ft_status
-        raise Exception('An unknown status {} were encountered while during restore!'.format(name))
+        raise Exception('An unknown status {} were encountered while during restore!'.format(
+            name
+        ))
 
     def get_type(self, name):
         for ft_type in self.types_by_id.values():
             if ft_type['name'].lower() == name.lower():
                 return ft_type
-        raise Exception('An unknown type {} were encountered while during restore!'.format(name))
+        raise Exception('An unknown type {} were encountered while during restore!'.format(
+            name
+        ))
 
     def get_workflow_schema(self, prev_id):
         for workflow_schema in self.result.get('workflow_schemas'):
@@ -291,7 +301,7 @@ class ManageProjectSchemas(object):
             })
             workflow_schema['entity'] = ft_workflow_schema
             for status in workflow_schema['statuses']:
-                ft_wfss = self.session.create('WorkflowSchemaStatus', {
+                self.session.create('WorkflowSchemaStatus', {
                     'workflow_schema_id': ft_workflow_schema['id'],
                     'status_id': self.get_status(status['name'])['id']
                 })
@@ -305,7 +315,7 @@ class ManageProjectSchemas(object):
             })
             task_schema['entity'] = ft_task_schema
             for _type in task_schema['types']:
-                ft_ttst = self.session.create('TaskTypeSchemaType', {
+                self.session.create('TaskTypeSchemaType', {
                     'task_type_schema_id': ft_task_schema['id'],
                     'type_id': self.get_type(_type['name'])['id']
                 })
@@ -316,7 +326,7 @@ class ManageProjectSchemas(object):
                 if project_schema['name'] != self.args.schema:
                     continue
             new_name = self.args.destination if self.args.schema is not None and \
-                    self.args.destination is not None else project_schema['name']
+                self.args.destination is not None else project_schema['name']
             ft_project_schema = self.session.create('ProjectSchema', {
                 'name': new_name,
                 'task_workflow_schema_id':
@@ -344,12 +354,14 @@ class ManageProjectSchemas(object):
                                 'is_time_reportable', 'is_typeable', 'sort']:
                         if key in object_type:
                             project_schema_object_type[key] = object_type[key]
-                    ft_psot = self.session.create('ProjectSchemaObjectType', project_schema_object_type)
+                    self.session.create('ProjectSchemaObjectType', project_schema_object_type)
                     logger.info((8 * ' ') + 'Created schema for object type {}, restoring schema for type...'.format(
-                        object_type['name']))
+                        object_type['name']
+                    ))
                 else:
                     logger.info((8 * ' ') + 'Restoring schema for type {}...'.format(
-                        object_type['name']))
+                        object_type['name']
+                    ))
 
                 # Find the schema that corresponds to type
                 for object_type_schema in project_schema['object_type_schemas']:
@@ -363,11 +375,12 @@ class ManageProjectSchemas(object):
                     })
 
                     logger.info((12 * ' ') + 'Created schema for {0}, mapping statuses: {1} and types: {2}...'.format(
-                        ft_object_type['name'], object_type_schema['statuses'], object_type_schema['types']))
+                        ft_object_type['name'], object_type_schema['statuses'], object_type_schema['types']
+                    ))
 
                     # Restore its types
                     for type_name in object_type_schema['types']:
-                        ft_st = self.session.create('SchemaType', {
+                        self.session.create('SchemaType', {
                             'schema_id': ft_object_type_schema['id'],
                             'type_id': self.get_type(type_name)['id']
                         })
@@ -375,7 +388,7 @@ class ManageProjectSchemas(object):
 
                     # And statuses
                     for status_name in object_type_schema['statuses']:
-                        ft_ss = self.session.create('SchemaStatus', {
+                        self.session.create('SchemaStatus', {
                             'schema_id': ft_object_type_schema['id'],
                             'status_id': self.get_status(status_name)['id']
                         })
@@ -385,7 +398,7 @@ class ManageProjectSchemas(object):
             logger.info((4 * ' ') + 'Restoring task_workflow_schema_overrides(Task workflow, part of)...')
             for task_workflow_schema_override in project_schema['task_workflow_schema_overrides']:
                 ft_task_type = self.get_type(task_workflow_schema_override['type'])
-                ft_psso = self.session.create('ProjectSchemaOverride', {
+                self.session.create('ProjectSchemaOverride', {
                     'project_schema_id': ft_project_schema['id'],
                     'type_id': ft_task_type['id'],
                     'workflow_schema_id': self.get_workflow_schema(task_workflow_schema_override['schema'])['id'],
@@ -405,7 +418,7 @@ class ManageProjectSchemas(object):
                 )
 
                 for task_type_name in task_template['items']:
-                    ft_ss = self.session.create('TaskTemplateItem', {
+                    self.session.create('TaskTemplateItem', {
                         'template_id': ft_task_template['id'],
                         'task_type_id': self.get_type(task_type_name)['id']
                     })
@@ -416,9 +429,11 @@ class ManageProjectSchemas(object):
             try:
                 self.session.commit()
             except Exception as error:
-                self.logger.error(error, exc_info=True)
+                logger.error(error, exc_info=True)
         else:
-            logger.warning('Dry run, NOT committing Project Schemas to Ftrack based on JSON {}...'.format(json.dumps(self.result, indent=3)))
+            logger.warning('Dry run, NOT committing Project Schemas to Ftrack based on JSON {}...'.format(
+                json.dumps(self.result, indent=3)
+            ))
 
 
 
