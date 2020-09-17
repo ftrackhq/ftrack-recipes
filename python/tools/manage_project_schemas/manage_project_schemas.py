@@ -239,6 +239,12 @@ class ManageProjectSchemas(object):
 
             self.result['project_schemas'].append(project_schema)
 
+        if len(self.result['project_schemas']) == 0:
+            if self.args.schema:
+                logger.warning('No schema with name/id "{}" were found!'.format(self.args.schema))
+            else:
+                logger.warning('No schemas were found!')
+
         if not self.args.dry_run:
             logger.info('Writing {}...'.format(self.args.filename))
             json.dump(self.result, open(self.args.filename, 'w'))
@@ -321,10 +327,11 @@ class ManageProjectSchemas(object):
                 })
             ft_task_type_schemas.append(ft_task_schema)
 
+        schema_found = False
         for project_schema in self.result['project_schemas']:
-            if self.args.schema:
-                if project_schema['name'] != self.args.schema:
-                    continue
+            if self.args.schema and project_schema['name'] != self.args.schema:
+                continue
+            schema_found = True
             new_name = self.args.destination if self.args.schema is not None and \
                 self.args.destination is not None else project_schema['name']
             ft_project_schema = self.session.create('ProjectSchema', {
@@ -423,6 +430,12 @@ class ManageProjectSchemas(object):
                         'task_type_id': self.get_type(task_type_name)['id']
                     })
                     logger.info((12 * ' ') + '+ Task type: {}'.format(task_type_name))
+
+        if not schema_found:
+            if self.args.schema:
+                logger.warning('No schema with name/id "{}" were found!'.format(self.args.schema))
+            else:
+                logger.warning('No schemas were found/JSON empty!')
 
         if not self.args.dry_run:
             logger.info('Committing Project Schemas to Ftrack...')
