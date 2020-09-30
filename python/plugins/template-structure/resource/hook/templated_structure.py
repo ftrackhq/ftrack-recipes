@@ -146,8 +146,7 @@ def configure_location(session, event):
     # Ensure new location.
     my_location = session.ensure(
         'Location', {
-            'name': TemplatedStructure.name,
-            'description': TemplatedStructure.description
+            'name': TemplatedStructure.name
         }
     )
 
