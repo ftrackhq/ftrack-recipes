@@ -27,7 +27,7 @@ class TemplatedStructure(ftrack_api.structure.standard.StandardStructure):
     name = 'recipe.templated-structure'
 
     mount_points = {
-        'windows': 'P://ftrack/projects',
+        'windows': 'P:\\ftrack\\projects',
         'linux': '/mnt/ftrack/projects',
         'darwin': '/mnt/ftrack/projects'
     }
