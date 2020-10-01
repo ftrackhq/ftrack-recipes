@@ -9,7 +9,7 @@ import lucidity
 sep = os.path.sep
 
 class TemplateCollection(dict):
-    ''' Template collection class to simplify tempalte composition.
+    ''' Template collection class to simplify template composition.
     
         # https://gitlab.com/4degrees/lucidity/-/issues/32
 

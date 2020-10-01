@@ -75,23 +75,28 @@ class TemplatedStructure(ftrack_api.structure.standard.StandardStructure):
 
         data = {}
         context = version['asset']['parent']
+
         for link in context['link']:
             entity_type = entity.session.get(
                 link['type'],
                 link['id']
             ).entity_type.lower()
 
-
             data[entity_type] = {
                 'name': link['name'].lower(),
                 'type': entity_type
             }
 
-            data['asset'] = {
-                'name': version['asset']['name'],
-                'type': version['asset']['type']['name'],
-                'version': str(version['version'])
-            }
+        data['asset'] = {
+            'name': version['asset']['name'],
+            'type': version['asset']['type']['name'],
+            'version': str(version['version'])
+        }
+
+        data['task'] = {
+            'name': version['task']['name'],
+            'type': version['task']['type']['name']
+        }
 
 
         # At the moment file names are not handled with lucidity. It can be done
@@ -112,7 +117,6 @@ class TemplatedStructure(ftrack_api.structure.standard.StandardStructure):
                 file_path = template.format(data)
             except Exception as error:
                 self.logger.warning(error)
-                continue
 
         if not file_path:
             raise IOError('No Valid template found')
