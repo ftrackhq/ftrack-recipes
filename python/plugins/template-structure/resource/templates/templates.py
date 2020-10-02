@@ -48,7 +48,9 @@ templates.add('shots_task_version', sep.join(['{@shots_task}', '{@version}']))
 templates.add('assets_task_version', sep.join(['{@assets_task}', '{@version}']))
 
 
-def register():
+def register(*args, **kwargs):
     '''Register templates.'''
+    #  NOTE: we pass args and kwargs so the register function does not error if 
+    # api pick it up by mistake.
 
     return templates.values()
