@@ -3,17 +3,13 @@
 
 
 import os
+import sys
+import subprocess
 import re
 import shutil
 
 from pkg_resources import parse_version
 import pip
-
-
-if parse_version(pip.__version__) < parse_version('19.3.0'):
-    raise ValueError('Pip should be version 19.3.0 or higher')
-
-from pip._internal import main as pip_main  # pip >= 10
 
 from setuptools import setup, find_packages, Command
 
@@ -70,11 +66,10 @@ class BuildPlugin(Command):
             os.path.join(STAGING_PATH, 'templates')
         )
 
-        pip_main.main(
+
+        subprocess.check_call(
             [
-                'install',
-                '.',
-                '--target',
+                sys.executable, '-m', 'pip', 'install','.','--target',  
                 os.path.join(STAGING_PATH, 'dependencies')
             ]
         )
@@ -114,6 +109,5 @@ setup(
     cmdclass={
         'build_plugin': BuildPlugin,
     },
-    python_requires='>= 2.7.9, < 3.0'  # lucidity does not support yet python3
-
+    python_requires='>= 2.7.9, < 4.0'
 )
