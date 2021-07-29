@@ -20,8 +20,15 @@ class OffsetTasksTimeSelection(BaseAction):
         
         for entity_type, entity_id in entities:
             task = session.get(entity_type, entity_id)
+            start_date = task['start_date']
+            end_date = task['end_date']
+        
+            if not start_date or not end_date:
+                continue
+
             task['start_date'] = task['start_date'].shift(days=offset_days)
             task['end_date'] = task['end_date'].shift(days=offset_days)   
+
         try:
             session.commit()
         except Exception as error:
@@ -29,7 +36,8 @@ class OffsetTasksTimeSelection(BaseAction):
 
         return  {
             'success': True, 
-            'message': 'Selected Tasks have been offset by {} days.'.format(
+            'message': 'Selected ({}) Task/s have been offset by {} days.'.format(
+                len(entities),
                 offset_days
             )
         }
@@ -39,7 +47,7 @@ class OffsetTasksTimeSelection(BaseAction):
             return False
 
         for entity_type, entity_id in entities:
-            if entity_type == 'Task':
+            if entity_type == 'TypedContext':
                 return True
 
         return False
