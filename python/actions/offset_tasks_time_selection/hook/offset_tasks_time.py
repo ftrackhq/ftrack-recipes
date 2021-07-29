@@ -16,8 +16,13 @@ class OffsetTasksTimeSelection(BaseAction):
 
     def launch(self, session, entities, event):
         
-        offset_days = int(event['data']['values']['offset'])
+        offset_days = event['data']['values']['offset']
         
+        if not offset_days:
+            return False
+    
+        self.logger.info('Offsetting by {} days'.format(offset_days))
+
         for entity_type, entity_id in entities:
             task = session.get(entity_type, entity_id)
             start_date = task['start_date']
@@ -26,8 +31,8 @@ class OffsetTasksTimeSelection(BaseAction):
             if not start_date or not end_date:
                 continue
 
-            task['start_date'] = task['start_date'].shift(days=offset_days)
-            task['end_date'] = task['end_date'].shift(days=offset_days)   
+            task['start_date'] = task['start_date'].shift(days=int(offset_days))
+            task['end_date'] = task['end_date'].shift(days=int(offset_days))   
 
         try:
             session.commit()
@@ -60,10 +65,10 @@ class OffsetTasksTimeSelection(BaseAction):
             return None
 
         return [{
-                'label': 'day Offset',
-                'type': 'number',
-                'name': 'offset',
-                'empty_text': 1
+            'label': 'day Offset',
+            'type': 'number',
+            'name': 'offset',
+            'empty_text': 1
         }]
 
 
