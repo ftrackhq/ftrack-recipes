@@ -28,7 +28,7 @@ ffmpeg_cmd = 'ffmpeg'
 frame_rate = 30
 
 
-def async(fn):
+def _async(fn):
     '''Run *fn* asynchronously.'''
 
     def wrapper(*args, **kwargs):
@@ -77,7 +77,7 @@ class SequenceEncoder(object):
 
         self._destination = tempfile.NamedTemporaryFile(suffix='.mp4').name
 
-    @async
+    @_async
     def encode_and_upload(self):
         '''Handle creating and publishing a web-reviewable video for our event.
 
