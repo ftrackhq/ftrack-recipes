@@ -14,7 +14,7 @@ def transfer_to_local(session, event):
 
     component_id = event['data'].get('component_id')
     location_id = event['data'].get('location_id')
-    print component_id, location_id
+    print(component_id, location_id)
 
     if not component_id or not location_id:
         return

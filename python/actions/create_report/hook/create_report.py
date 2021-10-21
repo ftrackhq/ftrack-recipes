@@ -29,7 +29,7 @@ class CreateReportAction(BaseAction):
     def ftrack_server_location(self):
         '''Return the ftrack.server location.'''
         return self.session.query(
-            u"Location where name is 'ftrack.server'"
+            "Location where name is 'ftrack.server'"
         ).one()
 
     def validate_selection(self, entities):
@@ -59,7 +59,7 @@ class CreateReportAction(BaseAction):
         '''Return result of running action.'''
 
         self.logger.info(
-            u'Launching action with selection {0}'.format(entities)
+            'Launching action with selection {0}'.format(entities)
         )
 
         values = event['data'].get('values', {})
@@ -84,7 +84,7 @@ class CreateReportAction(BaseAction):
             # mark the job as failed.
             job['status'] = 'failed'
             job['data'] = json.dumps({
-                'description': unicode(error)
+                'description': str(error)
             })
             # Commit job status changes and description.
             self.session.commit()
@@ -92,7 +92,7 @@ class CreateReportAction(BaseAction):
             # Return an error message to the user.
             return {
                 'success': False,
-                'message': u'An error occured during the document generation.'
+                'message': 'An error occured during the document generation.'
             }
 
         # Create component on the server, name it and attach it the job.
@@ -119,7 +119,7 @@ class CreateReportAction(BaseAction):
         # Return the successful status to the user.
         return {
             'success': True,
-            'message': u'Successfully generated project report.'
+            'message': 'Successfully generated project report.'
         }
 
     def interface(self, session, entities, event):
@@ -161,7 +161,7 @@ class CreateReportAction(BaseAction):
                 'user': self.session.get('User', user_id),
                 'status': 'running',
                 'data': json.dumps({
-                    'description': unicode(
+                    'description': str(
                         'Project Report Export (click to download)'
                     )}
                 )
@@ -202,7 +202,7 @@ class CreateReportAction(BaseAction):
         sheet.write(
             0,
             1,
-            u'Project report for {0}'.format(
+            'Project report for {0}'.format(
                 project['name']
             ),
             bold16

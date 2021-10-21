@@ -34,7 +34,7 @@ def configure_location(session, event):
     location.priority = 2  # lower than storage scenario
 
     logger.info(
-        u'Registered location {0} at {1}.'.format(LOCATION_NAME, DISK_PREFIX)
+        'Registered location {0} at {1}.'.format(LOCATION_NAME, DISK_PREFIX)
     )
 
 

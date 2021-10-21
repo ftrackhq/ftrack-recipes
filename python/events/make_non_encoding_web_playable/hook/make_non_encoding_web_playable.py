@@ -33,7 +33,7 @@ def exec_cmd(cmd):
         )
         (stdout, stderr) = process.communicate()
     except Exception:
-        logger.exception(u'Failed to exectue command "{}"'.format(cmd[0]))
+        logger.exception('Failed to exectue command "{}"'.format(cmd[0]))
         raise
 
     if process.returncode:
@@ -172,7 +172,7 @@ def subscribe(session):
     # and stop it before it gets triggered, allowing us to override its behaviour.
 
     session.event_hub.subscribe(
-        u'topic="{0}" and source.user.username="{1}"'.format(
+        'topic="{0}" and source.user.username="{1}"'.format(
             topic, session.api_user
         ),
         functools.partial(callback, session=session),

@@ -70,7 +70,7 @@ class TransferComponentsAction(ftrack_action_handler.action.BaseAction):
     def discover(self, session, entities, event):
         '''Return True if action is valid.'''
         self.logger.info(
-            u'Discovering action with entities: {0}'.format(entities)
+            'Discovering action with entities: {0}'.format(entities)
         )
         return self.validate_entities(entities)
 
@@ -214,10 +214,10 @@ class TransferComponentsAction(ftrack_action_handler.action.BaseAction):
     def launch(self, session, entities, event):
         '''Launch edit meta data action.'''
         self.logger.info(
-            u'Launching action with selection: {0}'.format(entities)
+            'Launching action with selection: {0}'.format(entities)
         )
         values = event['data']['values']
-        self.logger.info(u'Received values: {0}'.format(values))
+        self.logger.info('Received values: {0}'.format(values))
 
         source_location = session.get('Location', values['from_location'])
         target_location = session.get('Location', values['to_location'])
@@ -257,10 +257,7 @@ class TransferComponentsAction(ftrack_action_handler.action.BaseAction):
         values = event['data'].get('values', {})
 
         if not values:
-            locations = filter(
-                lambda location: location.accessor,
-                session.query('select name, label from Location').all()
-            )
+            locations = [location for location in session.query('select name, label from Location').all() if location.accessor]
             # Sort by priority.
             locations = sorted(
                 locations, key=lambda location: location.priority
@@ -351,7 +348,7 @@ def main(arguments=None):
     parser.add_argument(
         '-v', '--verbosity',
         help='Set the logging output verbosity.',
-        choices=loggingLevels.keys(),
+        choices=list(loggingLevels.keys()),
         default='info'
     )
     namespace = parser.parse_args(arguments)

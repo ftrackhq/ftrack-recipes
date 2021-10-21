@@ -117,7 +117,7 @@ class UpdateReviewClips(BaseAction):
         *source_name* is a string representing the desired label or filename.
         '''
         current_user = self.session.query(
-            u'User where username is {0}'.format(self.session.api_user)).one()
+            'User where username is {0}'.format(self.session.api_user)).one()
         review_session_object.create_note(source_name, current_user)
 
     def _update_clip_label(self, review_session_object, source_name):

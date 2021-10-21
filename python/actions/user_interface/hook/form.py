@@ -84,7 +84,7 @@ class UserInterface(BaseAction):
     def launch(self, session, entities, event):
         if 'values' in event['data']:
             values = event['data']['values']
-            self.logger.info(u'Got values: {0}'.format(values))
+            self.logger.info('Got values: {0}'.format(values))
 
             return {
                 'success': True,

@@ -21,7 +21,7 @@ current_location = os.environ.get('FTRACK_LOCATION')
 def configure_location(session, location_setup, event):
     '''Configure location based on *location_setup*.'''
 
-    for location_name, disk_prefixes in location_setup.items():
+    for location_name, disk_prefixes in list(location_setup.items()):
         # Get mount point for the correct os in use
         disk_prefix = disk_prefixes.get(sys.platform)
 
@@ -53,7 +53,7 @@ def configure_location(session, location_setup, event):
             location.priority = 10
 
         logger.warning(
-            u'Registered location {0} at {1} with priority {2}'.format(
+            'Registered location {0} at {1} with priority {2}'.format(
                 location_name, disk_prefix, location.priority)
         )
 

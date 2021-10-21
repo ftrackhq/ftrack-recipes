@@ -36,7 +36,7 @@ class GenearateFolderStructureAction(BaseAction):
         Utility method to check *entities* validity.
 
         '''
-        print entities
+        print(entities)
         if not entities:
             return False
 

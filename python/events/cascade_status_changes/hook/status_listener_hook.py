@@ -39,12 +39,12 @@ def get_state_name(task):
     try:
         state = task['status']['state']['short']
     except KeyError:
-        logger.info(u'Child {} has no status'.format(
+        logger.info('Child {} has no status'.format(
             ftrack_api.inspection.identity(task)
         ))
         return
     if state not in ('BLOCKED', 'DONE', 'IN_PROGRESS', 'NOT_STARTED'):
-        logger.warning(u'Unknown state returned: {}'.format(state))
+        logger.warning('Unknown state returned: {}'.format(state))
         return
     return state
 
@@ -62,9 +62,9 @@ def get_new_shot_status(shot, tasks):
     project = shot['project']
     new_status = None
 
-    if task_states == set([u'DONE'], ):
+    if task_states == set(['DONE'], ):
         new_status = get_status_by_state(project, 'DONE')
-    elif task_states == set([u'NOT_STARTED'], ):
+    elif task_states == set(['NOT_STARTED'], ):
         new_status = get_status_by_state(project, 'NOT_STARTED')
     elif 'BLOCKED' in task_states:
         new_status = get_status_by_state(project, 'BLOCKED')
@@ -72,9 +72,9 @@ def get_new_shot_status(shot, tasks):
         new_status = get_status_by_state(project, 'IN_PROGRESS')
 
     if new_status is None:
-        logger.info(u'No appropriate state to set')
+        logger.info('No appropriate state to set')
         return None
-    logger.info(u'New shot status is {} ({})'.format(
+    logger.info('New shot status is {} ({})'.format(
         new_status['name'], new_status['id']))
     return new_status['id']
 

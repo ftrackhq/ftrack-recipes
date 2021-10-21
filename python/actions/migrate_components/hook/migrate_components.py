@@ -146,7 +146,7 @@ class MigrateComponents(BaseAction):
                 'user': self.session.get('User', user_id),
                 'status': 'running',
                 'data': json.dumps({
-                    'description': unicode(
+                    'description': str(
                          message
                     )}
                 )

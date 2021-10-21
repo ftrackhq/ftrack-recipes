@@ -238,7 +238,7 @@ class ManageProjectSchemas(object):
             }
 
             # Collect and serialize schema definitions
-            for (key, fn) in {
+            for (key, fn) in list({
                 'object_types': self.save_object_types,
                 'object_type_schemas': self.save_object_type_schemas,
                 'task_templates': self.save_task_templates,
@@ -246,7 +246,7 @@ class ManageProjectSchemas(object):
                 'task_workflow_schema': self.save_task_workflow_schema,
                 'task_workflow_schema_overrides': self.save_task_workflow_schema_overrides,
                 'save_asset_version_workflow_schema': self.save_asset_version_workflow_schema
-            }.items():
+            }.items()):
                 if key in ft_project_schema:
                     fn(ft_project_schema, project_schema)
 
@@ -269,7 +269,7 @@ class ManageProjectSchemas(object):
 
     def get_object_type(self, name):
         """ Get Ftrack object type by name from pre-cached entries. """
-        for ft_object_type in self.object_types_by_id.values():
+        for ft_object_type in list(self.object_types_by_id.values()):
             if ft_object_type['name'].lower() == name.lower():
                 return ft_object_type
         raise Exception('An unknown object type {} were encountered during restore!'.format(
@@ -278,7 +278,7 @@ class ManageProjectSchemas(object):
 
     def get_status(self, name):
         """ Get Ftrack status type by name from pre-cached entries. """
-        for ft_status in self.status_types_by_id.values():
+        for ft_status in list(self.status_types_by_id.values()):
             if ft_status['name'].lower() == name.lower():
                 return ft_status
         raise Exception('An unknown status {} were encountered while during restore!'.format(
@@ -287,7 +287,7 @@ class ManageProjectSchemas(object):
 
     def get_type(self, name):
         """ Get Ftrack type by name from pre-cached entries. """
-        for ft_type in self.types_by_id.values():
+        for ft_type in list(self.types_by_id.values()):
             if ft_type['name'].lower() == name.lower():
                 return ft_type
         raise Exception('An unknown type {} were encountered while during restore!'.format(

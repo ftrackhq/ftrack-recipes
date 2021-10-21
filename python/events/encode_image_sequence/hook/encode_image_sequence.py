@@ -132,7 +132,7 @@ class SequenceEncoder(object):
             )
             (stdout, stderr) = process.communicate()
         except Exception:
-            logger.exception(u'Failed to exectue command "{}"'.format(cmd[0]))
+            logger.exception('Failed to exectue command "{}"'.format(cmd[0]))
             raise
 
         if process.returncode:
@@ -227,7 +227,7 @@ class SequenceEncoder(object):
 
     @property
     def _version_link_text(self):
-        return u' / '.join([item['name'] for item in self._version['link']])
+        return ' / '.join([item['name'] for item in self._version['link']])
 
     def is_valid(self):
         '''Return True if we could parse the path as a sequence with no missing files.
@@ -314,7 +314,7 @@ def register(session, **kw):
     topic = 'ftrack.connect.publish.make-web-playable'
     logger.info('Subscribing to event topic: {0!r}'.format(topic))
     session.event_hub.subscribe(
-        u'topic="{0}" and source.user.username="{1}"'.format(topic, session.api_user),
+        'topic="{0}" and source.user.username="{1}"'.format(topic, session.api_user),
         functools.partial(callback, session=session),
         priority=50,  # The default is 100, so we'll beat the one bundled with Connect
     )

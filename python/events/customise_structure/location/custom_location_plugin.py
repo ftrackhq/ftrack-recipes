@@ -32,7 +32,7 @@ def configure_location(session, event):
     location.priority = 1
 
     logger.info(
-        u'Registered location {0} at {1}.'.format(LOCATION_NAME, DISK_PREFIX)
+        'Registered location {0} at {1}.'.format(LOCATION_NAME, DISK_PREFIX)
     )
 
 

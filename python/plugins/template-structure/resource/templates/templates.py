@@ -53,4 +53,4 @@ def register(*args, **kwargs):
     #  NOTE: we pass args and kwargs so the register function does not error if 
     # api pick it up by mistake.
 
-    return templates.values()
+    return list(templates.values())

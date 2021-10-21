@@ -111,7 +111,7 @@ class EditDescriptions(BaseAction):
         *event* is the unmodified original event.
 
         '''
-        for id_, comment in event['data']['values'].items():
+        for id_, comment in list(event['data']['values'].items()):
             session.get('AssetVersion', id_)['comment'] = comment
         session.commit()
 
