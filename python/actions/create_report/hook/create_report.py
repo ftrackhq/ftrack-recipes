@@ -28,9 +28,7 @@ class CreateReportAction(BaseAction):
     @property
     def ftrack_server_location(self):
         '''Return the ftrack.server location.'''
-        return self.session.query(
-            "Location where name is 'ftrack.server'"
-        ).one()
+        return self.session.query("Location where name is 'ftrack.server'").one()
 
     def validate_selection(self, entities):
         '''Return True if the selection is valid.
@@ -58,9 +56,7 @@ class CreateReportAction(BaseAction):
     def launch(self, session, entities, event):
         '''Return result of running action.'''
 
-        self.logger.info(
-            'Launching action with selection {0}'.format(entities)
-        )
+        self.logger.info('Launching action with selection {0}'.format(entities))
 
         values = event['data'].get('values', {})
 
@@ -72,9 +68,7 @@ class CreateReportAction(BaseAction):
         job = self._create_job(event)
 
         file_path = tempfile.NamedTemporaryFile(
-            prefix='example_utilization_report', 
-            suffix='.xlsx', 
-            delete=False
+            prefix='example_utilization_report', suffix='.xlsx', delete=False
         ).name
 
         try:
@@ -83,44 +77,33 @@ class CreateReportAction(BaseAction):
             # If an exception happens in the document generation
             # mark the job as failed.
             job['status'] = 'failed'
-            job['data'] = json.dumps({
-                'description': str(error)
-            })
+            job['data'] = json.dumps({'description': str(error)})
             # Commit job status changes and description.
             self.session.commit()
 
             # Return an error message to the user.
             return {
                 'success': False,
-                'message': 'An error occured during the document generation.'
+                'message': 'An error occured during the document generation.',
             }
 
         # Create component on the server, name it and attach it the job.
         job_file = os.path.basename(file_path).replace('.xlsx', '')
         component = self.session.create_component(
-            file_path,
-            data={'name': job_file},
-            location=self.ftrack_server_location
+            file_path, data={'name': job_file}, location=self.ftrack_server_location
         )
         self.session.commit()
 
         # Create job component.
         self.session.create(
-            'JobComponent',
-            {
-                'component_id': component['id'], 
-                'job_id': job['id']
-            }
+            'JobComponent', {'component_id': component['id'], 'job_id': job['id']}
         )
         # Set job status as done.
         job['status'] = 'done'
         self.session.commit()
 
         # Return the successful status to the user.
-        return {
-            'success': True,
-            'message': 'Successfully generated project report.'
-        }
+        return {'success': True, 'message': 'Successfully generated project report.'}
 
     def interface(self, session, entities, event):
         '''Return interface for *entities*.'''
@@ -139,7 +122,7 @@ class CreateReportAction(BaseAction):
                 'label': 'Project',
                 'value': project['name'],
                 'name': 'project_name',
-                'type': 'text'
+                'type': 'text',
             }
         ]
 
@@ -149,7 +132,7 @@ class CreateReportAction(BaseAction):
         '''Return new job from *event*.
 
         ..note::
-        
+
             This function will auto-commit the session.
 
         '''
@@ -160,12 +143,10 @@ class CreateReportAction(BaseAction):
             {
                 'user': self.session.get('User', user_id),
                 'status': 'running',
-                'data': json.dumps({
-                    'description': str(
-                        'Project Report Export (click to download)'
-                    )}
-                )
-            }
+                'data': json.dumps(
+                    {'description': str('Project Report Export (click to download)')}
+                ),
+            },
         )
         self.session.commit()
         return job
@@ -177,7 +158,12 @@ class CreateReportAction(BaseAction):
         xlsFile = xlsxwriter.Workbook(file_path)
 
         # Define bold style.
-        bold16 = xlsFile.add_format({'bold': True, 'font_size': 16, })
+        bold16 = xlsFile.add_format(
+            {
+                'bold': True,
+                'font_size': 16,
+            }
+        )
 
         # Define blue bold style.
         blue = xlsFile.add_format({'bold': True})
@@ -194,19 +180,12 @@ class CreateReportAction(BaseAction):
         ).one()
 
         # Fetch shots from the project.
-        shots = self.session.query('Shot where project.id is "{0}"'.format(
-            project['id']
-        )).all()
+        shots = self.session.query(
+            'Shot where project.id is "{0}"'.format(project['id'])
+        ).all()
 
         # Start populating excel file.
-        sheet.write(
-            0,
-            1,
-            'Project report for {0}'.format(
-                project['name']
-            ),
-            bold16
-        )
+        sheet.write(0, 1, 'Project report for {0}'.format(project['name']), bold16)
         # Set styles on cells
         sheet.write(2, 1, 'Shots', bold16)
         sheet.set_column(2, 1, 200)
@@ -222,9 +201,7 @@ class CreateReportAction(BaseAction):
             # Get shot status color from server.
             status_color = shot['status']['color']
 
-            xls_shot_status = xlsFile.add_format(
-                {'bold': True, 'font_size': 20}
-            )
+            xls_shot_status = xlsFile.add_format({'bold': True, 'font_size': 20})
             xls_shot_status.set_bg_color(status_color)
 
             sheet.write(idx + 3, 1, shot['name'], blue)
@@ -259,7 +236,5 @@ if __name__ == '__main__':
     register(session)
 
     # Wait for events
-    logging.info(
-        'Registered actions and listening for events. Use Ctrl-C to abort.'
-    )
+    logging.info('Registered actions and listening for events. Use Ctrl-C to abort.')
     session.event_hub.wait()

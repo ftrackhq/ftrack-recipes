@@ -70,15 +70,9 @@ class GenearateFolderStructureAction(BaseAction):
         for context in contexts:
             data = {}
             for link in context['link']:
-                entity_type = session.get(
-                    link['type'],
-                    link['id']
-                ).entity_type.lower()
+                entity_type = session.get(link['type'], link['id']).entity_type.lower()
 
-                data[entity_type] = {
-                    'name': link['name'].lower(),
-                    'type': entity_type
-                }
+                data[entity_type] = {'name': link['name'].lower(), 'type': entity_type}
 
             for template in templates:
 
@@ -94,9 +88,7 @@ class GenearateFolderStructureAction(BaseAction):
                     os.makedirs(full_result_path)
                 else:
                     self.logger.warning(
-                        'skipping {} as it already exist.'.format(
-                            full_result_path
-                        )
+                        'skipping {} as it already exist.'.format(full_result_path)
                     )
 
         return True
@@ -119,7 +111,5 @@ if __name__ == '__main__':
     # behavior will change from True to False.
     session = ftrack_api.Session(auto_connect_event_hub=True)
     register(session)
-    logging.info(
-        'Registered actions and listening for events. Use Ctrl-C to abort.'
-    )
+    logging.info('Registered actions and listening for events. Use Ctrl-C to abort.')
     session.event_hub.wait()

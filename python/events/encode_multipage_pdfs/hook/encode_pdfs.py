@@ -32,9 +32,7 @@ def callback(event, session):
         return
 
     if not os.path.isfile(path):
-        raise ValueError(
-            '"{0}" is not a valid filepath.'.format(path)
-        )
+        raise ValueError('"{0}" is not a valid filepath.'.format(path))
 
     # Clear the cache, just in case
     session.reset()
@@ -58,9 +56,7 @@ def subscribe(session):
     topic = 'ftrack.connect.publish.make-web-playable'
     logger.info('Subscribing to event topic: {0!r}'.format(topic))
     session.event_hub.subscribe(
-        'topic="{0}" and source.user.username="{1}"'.format(
-            topic, session.api_user
-        ),
+        'topic="{0}" and source.user.username="{1}"'.format(topic, session.api_user),
         functools.partial(callback, session=session),
         priority=50,  # The default is 100, so we'll be the one bundled with Connect
     )

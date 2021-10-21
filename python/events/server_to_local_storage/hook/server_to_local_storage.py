@@ -38,8 +38,8 @@ def register(session, **kw):
     handle_event = functools.partial(transfer_to_local, session)
     session.event_hub.subscribe(
         'topic=ftrack.location.component-added and'
-        ' source.applicationId="ftrack.client.web"', 
-        handle_event
+        ' source.applicationId="ftrack.client.web"',
+        handle_event,
     )
 
 
@@ -49,7 +49,5 @@ if __name__ == '__main__':
     # behavior will change from True to False.
     session = ftrack_api.Session(auto_connect_event_hub=True)
     register(session)
-    logging.info(
-        'Registered actions and listening for events. Use Ctrl-C to abort.'
-    )
+    logging.info('Registered actions and listening for events. Use Ctrl-C to abort.')
     session.event_hub.wait()

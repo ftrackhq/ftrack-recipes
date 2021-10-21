@@ -27,25 +27,19 @@ def configure_location(session, location_setup, event):
 
         if not disk_prefix:
             logger.error(
-                'No disk prefix configured for location {0}'.format(
-                    location_name
-                )
+                'No disk prefix configured for location {0}'.format(location_name)
             )
             continue
 
         if not os.path.exists(disk_prefix) or not os.path.isdir(disk_prefix):
             logger.error(
-                'Disk prefix for location {} does not exist.'.format(
-                    location_name
-                )
+                'Disk prefix for location {} does not exist.'.format(location_name)
             )
             continue
 
         location = session.ensure('Location', {'name': location_name})
 
-        location.accessor = ftrack_api.accessor.disk.DiskAccessor(
-            prefix=disk_prefix
-        )
+        location.accessor = ftrack_api.accessor.disk.DiskAccessor(prefix=disk_prefix)
         location.structure = ftrack_api.structure.standard.StandardStructure()
         if location_name == current_location:
             location.priority = 1  # lower value == higher priority !
@@ -54,7 +48,8 @@ def configure_location(session, location_setup, event):
 
         logger.warning(
             'Registered location {0} at {1} with priority {2}'.format(
-                location_name, disk_prefix, location.priority)
+                location_name, disk_prefix, location.priority
+            )
         )
 
 
@@ -69,9 +64,5 @@ def register(api_object, location_setup=None):
 
     api_object.event_hub.subscribe(
         'topic=ftrack.api.session.configure-location',
-        functools.partial(
-            configure_location,
-            api_object,
-            location_setup
-        )
+        functools.partial(configure_location, api_object, location_setup),
     )

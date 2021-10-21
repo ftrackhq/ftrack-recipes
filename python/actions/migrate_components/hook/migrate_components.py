@@ -16,7 +16,7 @@ class MigrateComponents(BaseAction):
     description = 'Migrate project components from one location to another'
 
     def validate_selection(self, entities):
-        ''' Utility method to check *entities* validity.
+        '''Utility method to check *entities* validity.
 
         Return True if the selection is valid.
         '''
@@ -30,10 +30,10 @@ class MigrateComponents(BaseAction):
         return False
 
     def migrate(self, project_id, source_location, destination_location):
-        '''Run migration of *project_id* from *source_location* 
+        '''Run migration of *project_id* from *source_location*
         to *destination_location*.
         '''
-        
+
         # Get the source location entity.
         source_location_object = self.session.query(
             'Location where name is "{}"'.format(source_location)
@@ -46,17 +46,15 @@ class MigrateComponents(BaseAction):
 
         # Get the project entity.
         project_object = self.session.query(
-            'Project where id is "{}"'.format(
-                project_id
-            )
+            'Project where id is "{}"'.format(project_id)
         ).one()
-        
-        # Collect all the components attached to the project. 
+
+        # Collect all the components attached to the project.
         component_objects = self.session.query(
             'Component where version.asset.parent.project_id is "{}" '
             'and component_locations.location_id is "{}"'.format(
                 project_object['id'], source_location_object['id']
-                )
+            )
         ).all()
 
         component_count = 0
@@ -91,27 +89,26 @@ class MigrateComponents(BaseAction):
                 'label': 'source location',
                 'value': self.session.pick_location()['name'],
                 'name': 'source_location',
-                'type': 'text'
+                'type': 'text',
             },
             {
                 'label': 'destination location',
                 'data': [],
                 'name': 'destination_location',
-                'type': 'enumerator'
+                'type': 'enumerator',
             },
+        ]
 
-        ]
-        
-        # Internal ftrack locations we are not interested in. 
+        # Internal ftrack locations we are not interested in.
         excluded_locations = [
-            'ftrack.origin', 
-            'ftrack.connect', 
-            'ftrack.unmanaged', 
-            'ftrack.server', 
-            'ftrack.review', 
-            self.session.pick_location()['name']
+            'ftrack.origin',
+            'ftrack.connect',
+            'ftrack.unmanaged',
+            'ftrack.server',
+            'ftrack.review',
+            self.session.pick_location()['name'],
         ]
-        
+
         for location in self.session.query('Location').all():
             if location.accessor is ftrack_api.symbol.NOT_SET:
                 # Remove non accessible locations.
@@ -120,12 +117,9 @@ class MigrateComponents(BaseAction):
             if location['name'] in excluded_locations:
                 # Remove source location as well as ftrack default ones.
                 continue
- 
+
             widgets[-1]['data'].append(
-                {
-                    'label': location['name'],
-                    'value': location['name']
-                }
+                {'label': location['name'], 'value': location['name']}
             )
 
         return widgets
@@ -134,7 +128,7 @@ class MigrateComponents(BaseAction):
         '''Return new job from *event*.
 
         ..note::
-        
+
             This function will auto-commit the session.
 
         '''
@@ -145,12 +139,8 @@ class MigrateComponents(BaseAction):
             {
                 'user': self.session.get('User', user_id),
                 'status': 'running',
-                'data': json.dumps({
-                    'description': str(
-                         message
-                    )}
-                )
-            }
+                'data': json.dumps({'description': str(message)}),
+            },
         )
         self.session.commit()
         return job
@@ -171,22 +161,20 @@ class MigrateComponents(BaseAction):
         # If there's no value coming from the ui, we can bail out.
         if not values:
             return
-    
+
         source_location = values['source_location']
         destination_location = values['destination_location']
-    
+
         # Create a new running Job.
         job = self._create_job(
-            event, 'Copying components from {} to {}'.format(
-                source_location,
-                destination_location
-            )
+            event,
+            'Copying components from {} to {}'.format(
+                source_location, destination_location
+            ),
         )
-        
+
         _, entity_id = entities[0]
-        self.migrate(
-            entity_id, source_location, destination_location
-        )
+        self.migrate(entity_id, source_location, destination_location)
 
         # Set job status as done.
         # This will notify the user in the web ui.
@@ -203,9 +191,7 @@ def register(api_object, **kw):
     if not isinstance(api_object, ftrack_api.session.Session):
         return
 
-    action = MigrateComponents(
-        api_object
-    )
+    action = MigrateComponents(api_object)
     action.register()
 
 
@@ -216,7 +202,5 @@ if __name__ == '__main__':
     register(session)
 
     # Wait for events
-    logging.info(
-        'Registered actions and listening for events. Use Ctrl-C to abort.'
-    )
+    logging.info('Registered actions and listening for events. Use Ctrl-C to abort.')
     session.event_hub.wait()

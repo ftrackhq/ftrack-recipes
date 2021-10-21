@@ -18,6 +18,7 @@ class UpdateReviewClips(BaseAction):
     proces_event() method is suitable for use as an event listener, running on
     clips as they are added to a review.
     '''
+
     label = 'Update Clips'
     identifier = 'com.ftrack.recipes.update_clips'
     description = 'Update review session clips based on original filename'
@@ -68,9 +69,7 @@ class UpdateReviewClips(BaseAction):
         entity_type, entity_id = entities[0]
 
         review_session_objects = session.query(
-            'ReviewSessionObject where review_session_id is "{0}"'.format(
-                entity_id
-            )
+            'ReviewSessionObject where review_session_id is "{0}"'.format(entity_id)
         ).all()
 
         for review_session_object in review_session_objects:
@@ -90,23 +89,16 @@ class UpdateReviewClips(BaseAction):
         '''
         review_component = self.session.query(
             'select metadata from Component where name like "ftrackreview-%"'
-            ' and version_id is "{0}"'.format(
-                review_session_object['version_id']
-            )
+            ' and version_id is "{0}"'.format(review_session_object['version_id'])
         ).one()
         source_component = self.session.get(
-            'Component',
-            review_component['metadata']['source_component_id']
+            'Component', review_component['metadata']['source_component_id']
         )
 
         if UPDATE_LABELS:
-            self._update_clip_label(
-                review_session_object, source_component['name']
-            )
+            self._update_clip_label(review_session_object, source_component['name'])
         else:
-            self.comment_on_clip(
-                review_session_object, source_component['name']
-            )
+            self.comment_on_clip(review_session_object, source_component['name'])
 
     def _comment_on_clip(self, review_session_object, source_name):
         '''Create a comment with content *source_name* on a clip.
@@ -117,7 +109,8 @@ class UpdateReviewClips(BaseAction):
         *source_name* is a string representing the desired label or filename.
         '''
         current_user = self.session.query(
-            'User where username is {0}'.format(self.session.api_user)).one()
+            'User where username is {0}'.format(self.session.api_user)
+        ).one()
         review_session_object.create_note(source_name, current_user)
 
     def _update_clip_label(self, review_session_object, source_name):
@@ -149,8 +142,7 @@ class UpdateReviewClips(BaseAction):
             if entity['entityType'] != 'reviewsessionobject':
                 continue
             review_session_object = self.session.get(
-                'ReviewSessionObject',
-                entity['entityId']
+                'ReviewSessionObject', entity['entityId']
             )
             self._update_review_session_object(review_session_object)
         self.session.commit()
@@ -172,16 +164,12 @@ def register(api_object, **kw):
     if RUN_AS_ACTION:
         action.register()
     else:
-        api_object.event_hub.subscribe(
-            'topic=ftrack.update', action.process_event
-        )
+        api_object.event_hub.subscribe('topic=ftrack.update', action.process_event)
 
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     session = ftrack_api.Session(auto_connect_event_hub=True)
     register(session)
-    logging.info(
-        'Registered actions and listening for event. Use Ctrl-C to abort.'
-    )
+    logging.info('Registered actions and listening for event. Use Ctrl-C to abort.')
     session.event_hub.wait()

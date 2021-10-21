@@ -10,6 +10,7 @@ import ftrack_api
 
 class EditDescriptions(BaseAction):
     '''Action to allow updating the descriptions on AssetVersion Objects.'''
+
     label = 'Edit Description'
     identifier = 'com.ftrack.recipes.edit_descriptions'
     description = 'Edit descriptions for AssetVersions'
@@ -115,10 +116,7 @@ class EditDescriptions(BaseAction):
             session.get('AssetVersion', id_)['comment'] = comment
         session.commit()
 
-        return {
-            'success': True,
-            'message': 'Description(s) updated.'
-        }
+        return {'success': True, 'message': 'Description(s) updated.'}
 
 
 def register(session, **kw):
@@ -139,7 +137,5 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     session = ftrack_api.Session(auto_connect_event_hub=True)
     register(session)
-    logging.info(
-        'Registered actions and listening for event. Use Ctrl-C to abort.'
-    )
+    logging.info('Registered actions and listening for event. Use Ctrl-C to abort.')
     session.event_hub.wait()
