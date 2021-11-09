@@ -81,7 +81,7 @@ class BuildPlugin(Command):
 setup(
     name='cloud_accessor',
     version=VERSION,
-    description='ftrack cloud_accessor example.',
+    description='ftrack cloud accessor example.',
     long_description=open(README_PATH).read(),
     keywords='ftrack, integration, connect, location, structure',
     url='https://bitbucket.org/ftrack/ftrack-recipes',
@@ -102,5 +102,5 @@ setup(
     cmdclass={
         'build_plugin': BuildPlugin,
     },
-    python_requires='>= 2.7.9, < 4.0'
+    python_requires='>= 3.7, < 4.0'
 )

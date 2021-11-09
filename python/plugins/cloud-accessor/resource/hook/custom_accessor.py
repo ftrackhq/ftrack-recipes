@@ -7,18 +7,23 @@ import logging
 import functools
 import platform
 
+os.environ['AWS_SECRET_ACCESS_KEY']='XXXXXXXXXXXXXXXXXXXXXXXXX'
+os.environ['AWS_ACCESS_KEY_ID']='XXXXXXXXXXXXXXXXXXXXXXXXX'
+
+
 dependencies_directory = os.path.abspath(
     os.path.join(os.path.dirname(__file__), '..', 'dependencies')
 )
 sys.path.append(dependencies_directory)
 
-# Pick the current folder location name.
-this_dir = os.path.abspath(os.path.dirname(__file__))
-
 import boto3
 import ftrack_api
 import ftrack_api.structure.standard
 from ftrack_s3_accessor.s3 import S3Accessor
+
+
+# Pick the current folder location name.
+this_dir = os.path.abspath(os.path.dirname(__file__))
 
 def configure_location(session, event):
     '''Configure locations for *session* and *event*.'''
@@ -27,7 +32,7 @@ def configure_location(session, event):
 
     my_location = session.ensure(
         'Location', {
-            'name': 'Cloud_Location'
+            'name': 'cloud.location'
         }
     )
 
@@ -35,15 +40,10 @@ def configure_location(session, event):
     my_location.structure = ftrack_api.structure.standard.StandardStructure()
     
     # Set accessor.
-    my_location.accessor = S3Accessor('ftrackdanh')
+    my_location.accessor = S3Accessor('ftracktest')
 
     # Set priority.
-    my_location.priority = -100
-
-    logging.info('Setting {} to {}'.format(
-        my_location.structure, my_location
-    )
-    )
+    my_location.priority = -1000
 
 
 def register(api_object):
