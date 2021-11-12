@@ -46,7 +46,7 @@ with the following command:
 
 .. code-block:: bash
 
-    $ pip install -r requirements.txt
+    $ pip install -r requirements.txt --force
 
 
 Environment variables
