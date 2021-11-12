@@ -4,6 +4,12 @@
 =====================
 ftrack python recipes
 =====================
+
+.. note::
+
+    The code examples are targeting python 3.X+ 
+
+
 In this repository, you'll be able to find working example code
 regarding action, events and python api and plugins usage in general.
 
