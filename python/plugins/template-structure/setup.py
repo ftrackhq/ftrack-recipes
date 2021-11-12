@@ -98,5 +98,5 @@ setup(
     cmdclass={
         'build_plugin': BuildPlugin,
     },
-    python_requires='>= 2.7.9, < 4.0',
+    python_requires='>=3, < 4.0',
 )
