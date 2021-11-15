@@ -29,19 +29,17 @@ class TemplatedStructure(ftrack_api.structure.standard.StandardStructure):
     mount_points = {
         'windows': 'P:\\ftrack\\projects',
         'linux': '/mnt/ftrack/projects',
-        'darwin': '/mnt/ftrack/projects'
+        'darwin': '/mnt/ftrack/projects',
     }
 
     def __init__(self, templates):
         super(TemplatedStructure, self).__init__()
-        self.logger = logging.getLogger(
-            __name__ + '.' + self.__class__.__name__
-        )
+        self.logger = logging.getLogger(__name__ + '.' + self.__class__.__name__)
 
         self._templates = templates
-        
+
         # assets can be published only under a version template
-        self._template_filter = 'version' 
+        self._template_filter = 'version'
 
     def _get_templates(self, component):
         '''Return version template from *component*.
@@ -78,32 +76,25 @@ class TemplatedStructure(ftrack_api.structure.standard.StandardStructure):
 
         for link in context['link']:
             entity_type = entity.session.get(
-                link['type'],
-                link['id']
+                link['type'], link['id']
             ).entity_type.lower()
 
-            data[entity_type] = {
-                'name': link['name'].lower(),
-                'type': entity_type
-            }
+            data[entity_type] = {'name': link['name'].lower(), 'type': entity_type}
 
         data['asset'] = {
             'name': version['asset']['name'],
             'type': version['asset']['type']['name'],
-            'version': str(version['version'])
+            'version': str(version['version']),
         }
 
         data['task'] = {
             'name': version['task']['name'],
-            'type': version['task']['type']['name']
+            'type': version['task']['type']['name'],
         }
-
 
         # At the moment file names are not handled with lucidity. It can be done
         # but for the simplicity of this example the basename is just copied.
-        standard_file_path = super(
-            TemplatedStructure, self
-        ).get_resource_identifier(
+        standard_file_path = super(TemplatedStructure, self).get_resource_identifier(
             entity, context=context
         )
         file_name = os.path.basename(standard_file_path)
@@ -121,10 +112,7 @@ class TemplatedStructure(ftrack_api.structure.standard.StandardStructure):
         if not file_path:
             raise IOError('No Valid template found')
 
-        file_path = os.path.join(
-            file_path,
-            file_name
-        )
+        file_path = os.path.join(file_path, file_name)
 
         return file_path
 
@@ -142,21 +130,14 @@ def configure_location(session, event):
 
     # Add this script path to the FTRACK_EVENT_PLUGIN_PATH.
     location_path = os.path.normpath(this_dir)
-    environment['FTRACK_EVENT_PLUGIN_PATH'] = os.pathsep.join([
-        location_path,
-        environment.get('FTRACK_EVENT_PLUGIN_PATH', '')
-    ])
+    environment['FTRACK_EVENT_PLUGIN_PATH'] = os.pathsep.join(
+        [location_path, environment.get('FTRACK_EVENT_PLUGIN_PATH', '')]
+    )
 
     # Ensure new location.
-    my_location = session.ensure(
-        'Location', {
-            'name': TemplatedStructure.name
-        }
-    )
+    my_location = session.ensure('Location', {'name': TemplatedStructure.name})
 
-    ftrack_api.mixin(
-        my_location, ftrack_api.entity.location.UnmanagedLocationMixin
-    )
+    ftrack_api.mixin(my_location, ftrack_api.entity.location.UnmanagedLocationMixin)
 
     # Create TemplatedStructure.
     templates = lucidity.discover_templates(
@@ -181,17 +162,12 @@ def configure_location(session, event):
     # Set priority.
     my_location.priority = 30
 
-    logging.info('Setting {} to {}'.format(
-        structure, my_location
-    )
-    )
+    logging.info('Setting {} to {}'.format(structure, my_location))
 
 
 def register(api_object):
     '''Register plugin with *api_object*.'''
-    logger = logging.getLogger(
-        'ftrack-recipes:configure_custom_structure.register'
-    )
+    logger = logging.getLogger('ftrack-recipes:configure_custom_structure.register')
 
     # Validate that session is an instance of ftrack_api.Session. If not, assume
     # that register is being called from an old or incompatible API and return
@@ -207,7 +183,7 @@ def register(api_object):
     api_object.event_hub.subscribe(
         'topic=ftrack.api.session.configure-location',
         functools.partial(configure_location, api_object),
-        priority=0
+        priority=0,
     )
 
     # React to application launch event.
@@ -215,7 +191,7 @@ def register(api_object):
     api_object.event_hub.subscribe(
         'topic=ftrack.connect.application.launch',
         functools.partial(configure_location, api_object),
-        priority=0
+        priority=0,
     )
 
     # React to action launch event.
@@ -223,7 +199,7 @@ def register(api_object):
     api_object.event_hub.subscribe(
         'topic=ftrack.action.launch',
         functools.partial(configure_location, api_object),
-        priority=0
+        priority=0,
     )
 
 

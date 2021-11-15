@@ -21,7 +21,9 @@ def get_status_by_state(project, state):
 
     raise ValueError(
         'No valid Shot status matching state {} for project {}'.format(
-            state, project['full_name']))
+            state, project['full_name']
+        )
+    )
 
 
 def is_status_change(entity):
@@ -29,9 +31,7 @@ def is_status_change(entity):
     is_task_entity = entity['entityType'] == 'task'
     is_add_update = entity.get('action') in ('add', 'update')
     is_status_change = 'statusid' in entity.get('keys', [])
-    return (
-        is_task_entity and is_add_update and is_status_change
-    )
+    return is_task_entity and is_add_update and is_status_change
 
 
 def get_state_name(task):
@@ -39,12 +39,12 @@ def get_state_name(task):
     try:
         state = task['status']['state']['short']
     except KeyError:
-        logger.info(u'Child {} has no status'.format(
-            ftrack_api.inspection.identity(task)
-        ))
+        logger.info(
+            'Child {} has no status'.format(ftrack_api.inspection.identity(task))
+        )
         return
     if state not in ('BLOCKED', 'DONE', 'IN_PROGRESS', 'NOT_STARTED'):
-        logger.warning(u'Unknown state returned: {}'.format(state))
+        logger.warning('Unknown state returned: {}'.format(state))
         return
     return state
 
@@ -57,14 +57,20 @@ def get_new_shot_status(shot, tasks):
     '''
     logger.info('Current shot status: {}'.format(shot['status']['name']))
 
-    task_states = set([get_state_name(task) for task in tasks], )
+    task_states = set(
+        [get_state_name(task) for task in tasks],
+    )
     task_states.discard(None)
     project = shot['project']
     new_status = None
 
-    if task_states == set([u'DONE'], ):
+    if task_states == set(
+        ['DONE'],
+    ):
         new_status = get_status_by_state(project, 'DONE')
-    elif task_states == set([u'NOT_STARTED'], ):
+    elif task_states == set(
+        ['NOT_STARTED'],
+    ):
         new_status = get_status_by_state(project, 'NOT_STARTED')
     elif 'BLOCKED' in task_states:
         new_status = get_status_by_state(project, 'BLOCKED')
@@ -72,10 +78,11 @@ def get_new_shot_status(shot, tasks):
         new_status = get_status_by_state(project, 'IN_PROGRESS')
 
     if new_status is None:
-        logger.info(u'No appropriate state to set')
+        logger.info('No appropriate state to set')
         return None
-    logger.info(u'New shot status is {} ({})'.format(
-        new_status['name'], new_status['id']))
+    logger.info(
+        'New shot status is {} ({})'.format(new_status['name'], new_status['id'])
+    )
     return new_status['id']
 
 
@@ -91,13 +98,13 @@ def send_message_to_user(session, user_id):
             data=dict(
                 type='message',
                 success=True,
-                message=('cascade_status_changes: '
-                         'Shot status updated automatically')
+                message=(
+                    'cascade_status_changes: ' 'Shot status updated automatically'
+                ),
             ),
-            target='applicationId=ftrack.client.web and user.id="{0}"'.format(
-                user_id)
+            target='applicationId=ftrack.client.web and user.id="{0}"'.format(user_id),
         ),
-        on_error='ignore'
+        on_error='ignore',
     )
 
 
@@ -161,8 +168,7 @@ def register(session, **kw):
         return
 
     # Register the event handler
-    handle_event = functools.partial(cascade_status_changes_event_listener,
-                                     session)
+    handle_event = functools.partial(cascade_status_changes_event_listener, session)
     session.event_hub.subscribe('topic=ftrack.update', handle_event)
 
 
@@ -172,7 +178,5 @@ if __name__ == '__main__':
     # behavior will change from True to False.
     session = ftrack_api.Session(auto_connect_event_hub=True)
     register(session)
-    logging.info(
-        'Registered actions and listening for events. Use Ctrl-C to abort.'
-    )
+    logging.info('Registered actions and listening for events. Use Ctrl-C to abort.')
     session.event_hub.wait()

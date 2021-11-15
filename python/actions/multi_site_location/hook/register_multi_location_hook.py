@@ -6,22 +6,33 @@ import sys
 import logging
 import json
 import ftrack_api
-import ftrack_connect.application
 
 logger = logging.getLogger('com.ftrack.recipes.multi_site_location.hook')
 
 
 CWD = os.path.dirname(__file__)
 
-LOCATION_DIRECTORY = os.path.abspath(
-    os.path.join(CWD, '..', 'location')
-)
+LOCATION_DIRECTORY = os.path.abspath(os.path.join(CWD, '..', 'location'))
 sys.path.append(LOCATION_DIRECTORY)
 
 
-LOCATIONS_CONFIG_FILE_PATH = os.path.abspath(
-    os.path.join(CWD, 'locations.json')
-)
+LOCATIONS_CONFIG_FILE_PATH = os.path.abspath(os.path.join(CWD, 'locations.json'))
+
+
+def append_path(path, key, environment):
+    '''Append *path* to *key* in *environment*.'''
+    try:
+        environment[key] = (
+            os.pathsep.join([
+                environment[key], path
+            ])
+        )
+    except KeyError:
+        environment[key] = path
+
+    return environment
+
+
 
 with open(LOCATIONS_CONFIG_FILE_PATH) as json_file:
     LOCATIONS_DATA = json.load(json_file)
@@ -35,19 +46,11 @@ def modify_application_launch(event):
 
     environment = event['data']['options']['env']
 
-    ftrack_connect.application.appendPath(
-        LOCATION_DIRECTORY,
-        'FTRACK_EVENT_PLUGIN_PATH',
-        environment
+    append_path(
+        LOCATION_DIRECTORY, 'FTRACK_EVENT_PLUGIN_PATH', environment
     )
-    ftrack_connect.application.appendPath(
-        LOCATION_DIRECTORY,
-        'PYTHONPATH',
-        environment
-    )
-    logger.info(
-        'Connect plugin modified launch hook to register location plugin.'
-    )
+    append_path(LOCATION_DIRECTORY, 'PYTHONPATH', environment)
+    logger.info('Connect plugin modified launch hook to register location plugin.')
 
 
 def register(api_object, **kw):
@@ -61,17 +64,15 @@ def register(api_object, **kw):
         return
 
     import custom_location_plugin
+
     custom_location_plugin.register(api_object, location_setup=LOCATIONS_DATA)
 
     # Location will be available from within the dcc applications.
     api_object.event_hub.subscribe(
-        'topic=ftrack.connect.application.launch',
-        modify_application_launch
-
+        'topic=ftrack.connect.application.launch', modify_application_launch
     )
 
     # Location will be available from actions
     api_object.event_hub.subscribe(
-        'topic=ftrack.action.launch',
-        modify_application_launch
+        'topic=ftrack.action.launch', modify_application_launch
     )

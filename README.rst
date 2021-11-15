@@ -4,6 +4,7 @@
 ==============
 ftrack recipes
 ==============
+
 A collection of working example code,
 to discover and learn how to make the best out of your ftrack server.
 

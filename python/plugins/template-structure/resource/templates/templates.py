@@ -8,10 +8,11 @@ import lucidity
 # define path separator
 sep = os.path.sep
 
+
 class TemplateCollection(dict):
-    ''' Template collection class to simplify template composition.
-    
-        # https://gitlab.com/4degrees/lucidity/-/issues/32
+    '''Template collection class to simplify template composition.
+
+    # https://gitlab.com/4degrees/lucidity/-/issues/32
 
     '''
 
@@ -33,14 +34,18 @@ templates = TemplateCollection()
 # template fragments
 templates.add('project', '{project.name}')
 templates.add('task', sep.join(['{task.type}', '{task.name}']))
-templates.add('version', sep.join(['publish',  '{asset.name}', 'version_{asset.version}']))
+templates.add(
+    'version', sep.join(['publish', '{asset.name}', 'version_{asset.version}'])
+)
 
 # asset templates
 templates.add('assets', sep.join(['{@project}', 'assets', '{assetbuild.name}']))
 templates.add('assets_task', sep.join(['{@assets}', '{@task}']))
 
 # shot template
-templates.add('shots', sep.join(['{@project}', 'sequences', '{sequence.name}_{shot.name}']))
+templates.add(
+    'shots', sep.join(['{@project}', 'sequences', '{sequence.name}_{shot.name}'])
+)
 templates.add('shots_task', sep.join(['{@shots}', '{@task}']))
 
 # versions template, these are used during the publishing.
@@ -50,7 +55,7 @@ templates.add('assets_task_version', sep.join(['{@assets_task}', '{@version}']))
 
 def register(*args, **kwargs):
     '''Register templates.'''
-    #  NOTE: we pass args and kwargs so the register function does not error if 
+    #  NOTE: we pass args and kwargs so the register function does not error if
     # api pick it up by mistake.
 
-    return templates.values()
+    return list(templates.values())

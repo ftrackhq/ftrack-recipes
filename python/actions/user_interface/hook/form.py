@@ -30,53 +30,49 @@ class UserInterface(BaseAction):
                 'label': 'My String',
                 'type': 'text',
                 'value': 'no string',
-                'name': 'my_string'
-            }, {
+                'name': 'my_string',
+            },
+            {
                 'label': 'My String2',
                 'type': 'text',
                 'value': 'no string2',
-                'name': 'my_string2'
-            }, {
+                'name': 'my_string2',
+            },
+            {
                 'label': 'My Date',
                 'type': 'date',
                 'name': 'my_date',
-                'value': datetime.date.today().isoformat()
-            }, {
+                'value': datetime.date.today().isoformat(),
+            },
+            {
                 'label': 'My Number',
                 'type': 'number',
                 'name': 'my_number',
-                'empty_text': 'Type a number here...'
-            }, {
-                'value': '## This is a label. ##',
-                'type': 'label'
-            }, {
+                'empty_text': 'Type a number here...',
+            },
+            {'value': '## This is a label. ##', 'type': 'label'},
+            {
                 'label': 'Enter your text',
                 'name': 'my_textarea',
                 'value': 'some text',
-                'type': 'textarea'
-            }, {
+                'type': 'textarea',
+            },
+            {
                 'label': 'My Boolean',
                 'name': 'my_boolean',
                 'value': True,
-                'type': 'boolean'
-            }, {
-                'value': 'This field is hidden',
-                'name': 'my_hidden',
-                'type': 'hidden'
-            }, {
+                'type': 'boolean',
+            },
+            {'value': 'This field is hidden', 'name': 'my_hidden', 'type': 'hidden'},
+            {
                 'label': 'My Enum',
                 'type': 'enumerator',
                 'name': 'my_enumerator',
                 'data': [
-                    {
-                        'label': 'Option 1',
-                        'value': 'opt1'
-                    }, {
-                        'label': 'Option 2',
-                        'value': 'opt2'
-                    }
-                ]
-            }
+                    {'label': 'Option 1', 'value': 'opt1'},
+                    {'label': 'Option 2', 'value': 'opt2'},
+                ],
+            },
         ]
 
         return widgets
@@ -84,12 +80,9 @@ class UserInterface(BaseAction):
     def launch(self, session, entities, event):
         if 'values' in event['data']:
             values = event['data']['values']
-            self.logger.info(u'Got values: {0}'.format(values))
+            self.logger.info('Got values: {0}'.format(values))
 
-            return {
-                'success': True,
-                'message': 'Ran my custom action successfully!'
-            }
+            return {'success': True, 'message': 'Ran my custom action successfully!'}
 
 
 def register(session, **kw):

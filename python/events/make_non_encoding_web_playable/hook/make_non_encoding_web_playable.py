@@ -14,13 +14,41 @@ logger = logging.getLogger('com.ftrack.recipes.make-non-encode-web-playable')
 
 # Gathered from https://en.wikipedia.org/wiki/Video_file_format
 ENCODING_SUPPORTED_EXTENSIONS_VIDEO = [
-    '.3g2', '.3gp', '.asf', '.avi', '.drc', '.flv', '.m2v', '.m4p', '.m4v',
-    '.m4v', '.mkv', '.mng', '.mov', '.mp2', '.mp4', '.mpe', '.mpeg', '.mpg',
-    '.mpv', '.mxf', '.nsv', '.ogg', '.ogv', '.qt', '.rm', '.rmvb', '.roq',
-    '.svi', '.vob','.webm', '.wmv', '.yuv'
+    '.3g2',
+    '.3gp',
+    '.asf',
+    '.avi',
+    '.drc',
+    '.flv',
+    '.m2v',
+    '.m4p',
+    '.m4v',
+    '.m4v',
+    '.mkv',
+    '.mng',
+    '.mov',
+    '.mp2',
+    '.mp4',
+    '.mpe',
+    '.mpeg',
+    '.mpg',
+    '.mpv',
+    '.mxf',
+    '.nsv',
+    '.ogg',
+    '.ogv',
+    '.qt',
+    '.rm',
+    '.rmvb',
+    '.roq',
+    '.svi',
+    '.vob',
+    '.webm',
+    '.wmv',
+    '.yuv',
 ]
 
-#change these to match full path to the exact executables.
+# change these to match full path to the exact executables.
 ffmpeg_cmd = 'ffmpeg'
 ffprobe_cmd = 'ffprobe'
 
@@ -28,12 +56,10 @@ ffprobe_cmd = 'ffprobe'
 def exec_cmd(cmd):
     '''execute the provided *cmd*'''
     try:
-        process = subprocess.Popen(
-            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        )
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         (stdout, stderr) = process.communicate()
     except Exception:
-        logger.exception(u'Failed to exectue command "{}"'.format(cmd[0]))
+        logger.exception('Failed to exectue command "{}"'.format(cmd[0]))
         raise
 
     if process.returncode:
@@ -106,19 +132,14 @@ def get_info(filepath):
     }
 
     return meta
-    
+
 
 def callback(event, session):
-    '''Non encoding make-web-playable hook.
-    '''
+    '''Non encoding make-web-playable hook.'''
     # http://ftrack-python-api.rtd.ftrack.com/en/stable/example/web_review.html?highlight=reviewable
 
-
     # run new event
-    server_location = session.get(
-        'Location',
-        ftrack_api.symbol.SERVER_LOCATION_ID
-    )
+    server_location = session.get('Location', ftrack_api.symbol.SERVER_LOCATION_ID)
 
     version_id = event['data']['versionId']
     path = event['data']['path']
@@ -127,28 +148,20 @@ def callback(event, session):
 
     # Validate that the path is an accessible file.
     if not os.path.isfile(path):
-        raise ValueError(
-            '"{0}" is not a valid filepath.'.format(path)
-        )
+        raise ValueError('"{0}" is not a valid filepath.'.format(path))
 
     # Validate file is of the supported format
     _, file_extension = os.path.splitext(path)
     if file_extension not in ENCODING_SUPPORTED_EXTENSIONS_VIDEO:
-        logger.error(
-            '"{0}" is not in a valid file format.'.format(path)
-        )
+        logger.error('"{0}" is not in a valid file format.'.format(path))
         return
-    
+
     # disable previous event if we are in any accepted format.
     event.stop()
 
     # publish the file for review without re encoding.
     component = version.create_component(
-        path=path,
-        data={
-            'name': 'ftrackreview-mp4'
-        },
-        location=server_location
+        path=path, data={'name': 'ftrackreview-mp4'}, location=server_location
     )
     metadata = get_info(path)
     component['metadata']['ftr_meta'] = json.dumps(metadata)
@@ -172,11 +185,9 @@ def subscribe(session):
     # and stop it before it gets triggered, allowing us to override its behaviour.
 
     session.event_hub.subscribe(
-        u'topic="{0}" and source.user.username="{1}"'.format(
-            topic, session.api_user
-        ),
+        'topic="{0}" and source.user.username="{1}"'.format(topic, session.api_user),
         functools.partial(callback, session=session),
-        priority=20
+        priority=20,
     )
 
 

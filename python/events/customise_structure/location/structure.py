@@ -45,9 +45,7 @@ class Structure(ftrack_api.structure.base.Structure):
 
     '''
 
-    def __init__(
-        self, project_versions_prefix=None, illegal_character_substitute='_'
-    ):
+    def __init__(self, project_versions_prefix=None, illegal_character_substitute='_'):
         '''Initialise structure.
 
         If *project_versions_prefix* is defined, insert after the project code
@@ -72,7 +70,7 @@ class Structure(ftrack_api.structure.base.Structure):
 
     def _get_parts(self, entity):
         '''Return resource identifier parts from *entity*.'''
-        
+
         self.logger.debug('Get parts from entity : {}'.format(entity))
 
         session = entity.session
@@ -84,15 +82,10 @@ class Structure(ftrack_api.structure.base.Structure):
 
         error_message = (
             'Component {0!r} must be attached to a committed '
-            'version and a committed asset with a parent context.'.format(
-                entity
-            )
+            'version and a committed asset with a parent context.'.format(entity)
         )
 
-        if (
-            version is ftrack_api.symbol.NOT_SET or
-            version in session.created
-        ):
+        if version is ftrack_api.symbol.NOT_SET or version in session.created:
             raise ftrack_api.exception.StructureError(error_message)
 
         link = version['link']
@@ -100,10 +93,7 @@ class Structure(ftrack_api.structure.base.Structure):
         if not link:
             raise ftrack_api.exception.StructureError(error_message)
 
-        structure_names = [
-            item['name']
-            for item in link[1:-1]
-        ]
+        structure_names = [item['name'] for item in link[1:-1]]
 
         project_id = link[0]['id']
         project = session.get('Project', project_id)
@@ -155,7 +145,7 @@ class Structure(ftrack_api.structure.base.Structure):
 
         value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')
         value = re.sub('[^\w\.-]', self.illegal_character_substitute, value)
-        return unicode(value.strip().lower())
+        return str(value.strip().lower())
 
     def get_resource_identifier(self, entity, context=None):
         '''Return a resource identifier for supplied *entity*.
@@ -172,9 +162,7 @@ class Structure(ftrack_api.structure.base.Structure):
 
         self.logger.debug(
             'Gettting resource identifier'
-            ' for entity : {} and context : {}'.format(
-                entity, context
-            )
+            ' for entity : {} and context : {}'.format(entity, context)
         )
 
         if entity.entity_type in ('FileComponent',):
@@ -193,16 +181,14 @@ class Structure(ftrack_api.structure.base.Structure):
                     )
                     parts = [
                         os.path.dirname(container_path),
-                        self.sanitise_for_filesystem(name)
+                        self.sanitise_for_filesystem(name),
                     ]
 
                 else:
                     # Container is not a sequence component so add it as a
                     # normal component inside the container.
                     name = entity['name'] + entity['file_type']
-                    parts = [
-                        container_path, self.sanitise_for_filesystem(name)
-                    ]
+                    parts = [container_path, self.sanitise_for_filesystem(name)]
 
             else:
                 # File component does not have a container, construct name from
@@ -220,7 +206,7 @@ class Structure(ftrack_api.structure.base.Structure):
                 '{0}.{1}{2}'.format(
                     self.sanitise_for_filesystem(entity['name']),
                     sequence_expression,
-                    self.sanitise_for_filesystem(entity['file_type'])
+                    self.sanitise_for_filesystem(entity['file_type']),
                 )
             )
 

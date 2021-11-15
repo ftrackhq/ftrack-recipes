@@ -28,7 +28,7 @@ ffmpeg_cmd = 'ffmpeg'
 frame_rate = 30
 
 
-def async(fn):
+def _async(fn):
     '''Run *fn* asynchronously.'''
 
     def wrapper(*args, **kwargs):
@@ -77,7 +77,7 @@ class SequenceEncoder(object):
 
         self._destination = tempfile.NamedTemporaryFile(suffix='.mp4').name
 
-    @async
+    @_async
     def encode_and_upload(self):
         '''Handle creating and publishing a web-reviewable video for our event.
 
@@ -91,8 +91,7 @@ class SequenceEncoder(object):
             self._update_job(description='Uploading reviewable for {link}')
             self._upload()
             self._update_job(
-                status='done',
-                description='Image sequence reviewable for {link}'
+                status='done', description='Image sequence reviewable for {link}'
             )
         except Exception:
             self._update_job(status='failed')
@@ -132,7 +131,7 @@ class SequenceEncoder(object):
             )
             (stdout, stderr) = process.communicate()
         except Exception:
-            logger.exception(u'Failed to exectue command "{}"'.format(cmd[0]))
+            logger.exception('Failed to exectue command "{}"'.format(cmd[0]))
             raise
 
         if process.returncode:
@@ -171,19 +170,31 @@ class SequenceEncoder(object):
         '''
         cmd = [
             self._ffmpeg_cmd,
-            '-start_number', str(next(iter(self._collection.indexes))),
-            '-i', self._collection.format('{head}{padding}{tail}'),
-            '-vf', "scale='trunc((a*oh)/2)*2':'min(720,trunc((a*ih)/2)*2)'",
-            '-framerate', str(self._frame_rate),
-            '-c:v', 'libx264',
-            '-pix_fmt', 'yuv420p',
-            '-b:v', '2000k',
-            '-vprofile', 'high',
-            '-bf', '0',
-            '-strict', 'experimental',
-            '-f', 'mp4',
-            '-g', '30',  # Set to 1 for a very large file with frame-by-frame playback
-            self._destination
+            '-start_number',
+            str(next(iter(self._collection.indexes))),
+            '-i',
+            self._collection.format('{head}{padding}{tail}'),
+            '-vf',
+            "scale='trunc((a*oh)/2)*2':'min(720,trunc((a*ih)/2)*2)'",
+            '-framerate',
+            str(self._frame_rate),
+            '-c:v',
+            'libx264',
+            '-pix_fmt',
+            'yuv420p',
+            '-b:v',
+            '2000k',
+            '-vprofile',
+            'high',
+            '-bf',
+            '0',
+            '-strict',
+            'experimental',
+            '-f',
+            'mp4',
+            '-g',
+            '30',  # Set to 1 for a very large file with frame-by-frame playback
+            self._destination,
         ]
         return cmd
 
@@ -227,11 +238,10 @@ class SequenceEncoder(object):
 
     @property
     def _version_link_text(self):
-        return u' / '.join([item['name'] for item in self._version['link']])
+        return ' / '.join([item['name'] for item in self._version['link']])
 
     def is_valid(self):
-        '''Return True if we could parse the path as a sequence with no missing files.
-        '''
+        '''Return True if we could parse the path as a sequence with no missing files.'''
         if self._collection is None:
             return False
         for file in self._missing_files:
@@ -314,7 +324,7 @@ def register(session, **kw):
     topic = 'ftrack.connect.publish.make-web-playable'
     logger.info('Subscribing to event topic: {0!r}'.format(topic))
     session.event_hub.subscribe(
-        u'topic="{0}" and source.user.username="{1}"'.format(topic, session.api_user),
+        'topic="{0}" and source.user.username="{1}"'.format(topic, session.api_user),
         functools.partial(callback, session=session),
         priority=50,  # The default is 100, so we'll beat the one bundled with Connect
     )

@@ -23,9 +23,9 @@ HOOK_PATH = os.path.join(RESOURCE_PATH, 'hook')
 TEMPLATES_PATH = os.path.join(RESOURCE_PATH, 'templates')
 
 # Read version from source.
-with open(os.path.join(
-    SOURCE_PATH, 'templated_structure', '_version.py'
-)) as _version_file:
+with open(
+    os.path.join(SOURCE_PATH, 'templated_structure', '_version.py')
+) as _version_file:
     VERSION = re.match(
         r'.*__version__ = \'(.*?)\'', _version_file.read(), re.DOTALL
     ).group(1)
@@ -55,32 +55,27 @@ class BuildPlugin(Command):
         shutil.rmtree(STAGING_PATH, ignore_errors=True)
 
         # Copy hook files
-        shutil.copytree(
-            HOOK_PATH,
-            os.path.join(STAGING_PATH, 'hook')
-        )
+        shutil.copytree(HOOK_PATH, os.path.join(STAGING_PATH, 'hook'))
 
         # Copy templates files
-        shutil.copytree(
-            TEMPLATES_PATH,
-            os.path.join(STAGING_PATH, 'templates')
-        )
-
+        shutil.copytree(TEMPLATES_PATH, os.path.join(STAGING_PATH, 'templates'))
 
         subprocess.check_call(
             [
-                sys.executable, '-m', 'pip', 'install','.','--target',  
-                os.path.join(STAGING_PATH, 'dependencies')
+                sys.executable,
+                '-m',
+                'pip',
+                'install',
+                '.',
+                '--target',
+                os.path.join(STAGING_PATH, 'dependencies'),
             ]
         )
 
         result_path = shutil.make_archive(
-            os.path.join(
-                BUILD_PATH,
-                'ftrack-templated-structure-{0}'.format(VERSION)
-            ),
+            os.path.join(BUILD_PATH, 'ftrack-templated-structure-{0}'.format(VERSION)),
             'zip',
-            STAGING_PATH
+            STAGING_PATH,
         )
 
 
@@ -96,18 +91,12 @@ setup(
     author_email='support@ftrack.com',
     license='Apache License (2.0)',
     packages=find_packages(SOURCE_PATH),
-    package_dir={
-        '': 'source'
-    },
-    install_requires=[
-        'ftrack-action-handler',
-        'lucidity'
-    ],
-    tests_require=[
-    ],
+    package_dir={'': 'source'},
+    install_requires=['ftrack-action-handler', 'lucidity'],
+    tests_require=[],
     zip_safe=False,
     cmdclass={
         'build_plugin': BuildPlugin,
     },
-    python_requires='>= 2.7.9, < 4.0'
+    python_requires='>=3, < 4.0',
 )

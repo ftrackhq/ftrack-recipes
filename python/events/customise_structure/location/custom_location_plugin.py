@@ -25,15 +25,11 @@ def configure_location(session, event):
     '''Listen.'''
     location = session.ensure('Location', {'name': LOCATION_NAME})
 
-    location.accessor = ftrack_api.accessor.disk.DiskAccessor(
-        prefix=DISK_PREFIX
-    )
+    location.accessor = ftrack_api.accessor.disk.DiskAccessor(prefix=DISK_PREFIX)
     location.structure = structure.Structure()
     location.priority = 1
 
-    logger.info(
-        u'Registered location {0} at {1}.'.format(LOCATION_NAME, DISK_PREFIX)
-    )
+    logger.info('Registered location {0} at {1}.'.format(LOCATION_NAME, DISK_PREFIX))
 
 
 def register(api_object, **kw):
@@ -52,5 +48,5 @@ def register(api_object, **kw):
 
     api_object.event_hub.subscribe(
         'topic=ftrack.api.session.configure-location',
-        functools.partial(configure_location, api_object)
+        functools.partial(configure_location, api_object),
     )
