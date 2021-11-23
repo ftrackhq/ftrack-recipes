@@ -15,7 +15,7 @@ import ftrack_action_handler.action
 SUPPORTED_ENTITY_TYPES = ('AssetVersion', 'TypedContext', 'Project', 'Component')
 
 
-def async(fn):
+def _async(fn):
     '''Run *fn* asynchronously.'''
 
     def wrapper(*args, **kwargs):
@@ -111,7 +111,7 @@ class TransferComponentsAction(ftrack_action_handler.action.BaseAction):
         self.logger.info('Found {0} components in selection'.format(len(components)))
         return list(components)
 
-    @async
+    @_async
     def transfer_components(
         self,
         entities,
