@@ -28,16 +28,7 @@ class MarkRunningJobsFailedAction(BaseAction):
         This will always return the action in any context so that it is globally
         available.
         """
-        # Whatever the context, we want this action to be available.
-        return {
-            "items": [
-                {
-                    "label": self.label,
-                    "description": self.description,
-                    "actionIdentifier": self.identifier,
-                }
-            ]
-        }
+        return True
 
     def launch(self, session, entities, event):
         """
