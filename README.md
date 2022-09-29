@@ -15,7 +15,7 @@ Clone the repository with :
 
 .. code-block:: bash
 
-    $ git clone git@bitbucket.org:ftrack/ftrack-recipes.git
+    $ git clone git@github.com/ftrackhq/ftrack-recipes.git
 
 Go in the folder of the example you are interesed in and check the
 instructions in the README.rst file.
