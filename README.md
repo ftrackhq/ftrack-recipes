@@ -1,4 +1,4 @@
-.. :copyright: Copyright (c) 2018 ftrack
+:copyright: Copyright (c) 2018 ftrack
 
 ============== ftrack recipes ==============
 
