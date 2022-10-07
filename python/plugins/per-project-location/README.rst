@@ -1,10 +1,6 @@
 ..
-    :copyright: Copyright (c) 2014-2020 ftrack
+    :copyright: Copyright (c) 2014-2022 ftrack
 
-
-.. warning::
-
-    This plugin works only on python 2.7 for current limitation on the library used.
 
 
 ===================
@@ -13,6 +9,7 @@ Per Project Location
 
 The ftrack location can be customised to make fit any custom use.
 In this example we provide a Location which make use of the project Storage / project folder attribute available in the project, to provide a way to publish different project in different mount points.
+It also contains a custom path resolver for connect to bypass current limitations of it.
 
 .. note::
 
