@@ -4,9 +4,7 @@ import logging
 
 import ftrack_api
 
-logger = logging.getLogger(
-    'per_project_location_hook'
-)
+logger = logging.getLogger('per_project_location_hook')
 
 
 LOCATION_DIRECTORY = os.path.abspath(
@@ -18,11 +16,7 @@ sys.path.append(LOCATION_DIRECTORY)
 def appendPath(path, key, environment):
     '''Append *path* to *key* in *environment*.'''
     try:
-        environment[key] = (
-            os.pathsep.join([
-                environment[key], path
-            ])
-        )
+        environment[key] = os.pathsep.join([environment[key], path])
     except KeyError:
         environment[key] = path
 
@@ -33,17 +27,9 @@ def modify_application_launch(event):
     '''Modify the application environment to include  our location plugin.'''
     environment = event['data'].get('options', {}).get('env', {})
 
-    appendPath(
-        LOCATION_DIRECTORY,
-        'FTRACK_EVENT_PLUGIN_PATH',
-        environment
-    )
-    
-    appendPath(
-        LOCATION_DIRECTORY,
-        'PYTHONPATH',
-        environment
-    )
+    appendPath(LOCATION_DIRECTORY, 'FTRACK_EVENT_PLUGIN_PATH', environment)
+
+    appendPath(LOCATION_DIRECTORY, 'PYTHONPATH', environment)
 
     logger.info(
         'Connect plugin modified launch hook to register location plugin.'
@@ -58,16 +44,15 @@ def register(api_object, **kw):
         return
 
     import per_project_location
+
     per_project_location.register(api_object)
 
     # Location will be available from within the dcc applications.
     api_object.event_hub.subscribe(
-        'topic=ftrack.connect.application.launch',
-        modify_application_launch
+        'topic=ftrack.connect.application.launch', modify_application_launch
     )
 
     # Location will be available from actions
     api_object.event_hub.subscribe(
-        'topic=ftrack.action.launch',
-        modify_application_launch
+        'topic=ftrack.action.launch', modify_application_launch
     )
