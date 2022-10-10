@@ -18,9 +18,14 @@ class PerProjectLocation(Location):
     platform = platform.system()
 
     def _get_project_root(self, component):
+
         target_project = component['version']['asset']['parent']['project']
 
         # use :storage / project location: from project settings
+        target_project = self.session.query(
+            f'select disk, root from Project where id is "{target_project["id"]}"'
+        ).first()
+
         root_folder = target_project['root']
         if not root_folder:
             root_folder = target_project['disk'].get(
