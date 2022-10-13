@@ -1,3 +1,6 @@
+# :coding: utf-8
+# :copyright: Copyright (c) 2016-2022 ftrack
+
 import os
 import sys
 import logging
@@ -39,8 +42,10 @@ def modify_application_launch(event):
 def register(api_object, **kw):
     '''Register plugin to api_object.'''
 
+    # Validate that session is an instance of ftrack_api.session.Session. If
+    # not, assume that register is being called from an old or incompatible API
+    # and return without doing anything.
     if not isinstance(api_object, ftrack_api.Session):
-        # Exit to avoid registering this plugin again.
         return
 
     import per_project_location

@@ -1,3 +1,7 @@
+# :coding: utf-8
+# :copyright: Copyright (c) 2016-2022 ftrack
+
+
 import os
 import sys
 import platform
@@ -19,11 +23,11 @@ class PerProjectLocation(Location):
 
     def _get_project_root(self, component):
 
-        target_project = component['version']['asset']['parent']['project']
+        target_project_id = component['version']['project_id']
 
         # use :storage / project location: from project settings
         target_project = self.session.query(
-            f'select disk, root from Project where id is "{target_project["id"]}"'
+            f'select disk, root from Project where id is "{target_project_id}"'
         ).first()
 
         root_folder = target_project['root']
@@ -68,7 +72,10 @@ def configure_location(session, event):
 
 def register(api_object, **kw):
     '''Register location with *session*.'''
-
+    
+    # Validate that session is an instance of ftrack_api.session.Session. If
+    # not, assume that register is being called from an old or incompatible API
+    # and return without doing anything.
     if not isinstance(api_object, ftrack_api.Session):
         return
 
