@@ -19,4 +19,10 @@ can be dropped into the FTRACK_CONNECT_PLUGIN_PATH as it is.
 
 # Scope
 
--   Build a self contained plugin able to provide a custom location.
+- Build a self contained plugin able to provide a custom location.
+
+# Note
+
+- Project['root'] is currently limited to 45 characters.
+- The code relies on location legacy attributes which might disappear in a future release.
+- As a different approach custom attributes could be used to store the project root path.
