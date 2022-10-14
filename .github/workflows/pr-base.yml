@@ -1,0 +1,17 @@
+name: PR
+
+on:
+  pull_request:
+    types:
+      - opened
+      - edited
+      - synchronize
+      - closed
+
+jobs:
+  check-pr:
+    name: Check PR
+    uses: ftrackhq/ftrack-actions/.github/workflows/pr-base.yml@main
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}
+      ftrackApiKey: ${{ secrets.FTRACK_API_KEY }}
