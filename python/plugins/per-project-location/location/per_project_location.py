@@ -1,7 +1,6 @@
 # :coding: utf-8
 # :copyright: Copyright (c) 2016-2022 ftrack
 
-
 import os
 import sys
 import platform
@@ -19,8 +18,8 @@ logger = logging.getLogger('per_project_location')
 
 
 class PerProjectLocation(Location):
-    platform = platform.system()
-
+    os_name = platform.system()
+    
     def _get_project_root(self, component):
 
         target_project_id = component['version']['project_id']
@@ -33,7 +32,8 @@ class PerProjectLocation(Location):
         root_folder = target_project['root']
         if not root_folder:
             root_folder = target_project['disk'].get(
-                platform.system().lower(), 'unix'
+                'unix' if self.os_name == 'Darwin' else self.os_name.lower(),
+                None
             )
 
         if not root_folder:
@@ -66,7 +66,9 @@ def configure_location(session, event):
     location.priority = 1 - sys.maxsize
 
     logger.warning(
-        f'Registering per project location {location} with accessor: {location.accessor} ,  structure: {location.structure} and priority: {location.priority} for platform {location.platform}'
+        f'Registering per project location {location} with accessor: '
+        f'{location.accessor} ,  structure: {location.structure} and priority: '
+        f'{location.priority} for platform {location.os_name}'
     )
 
 
