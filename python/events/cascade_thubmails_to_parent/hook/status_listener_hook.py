@@ -32,9 +32,11 @@ def cascade_thumbnail(session, event):
             entity.get('entityType') == 'assetversion'
         ):
             entity_id = entity['entityId']
+        
 
         # If entity was found, try to get it.
         if entity_id:
+
             # Get asset version and preload data for performance and to avoid
             # caching issues.
             asset_version = session.query(
@@ -43,14 +45,18 @@ def cascade_thumbnail(session, event):
                     entity['entityId']
                 )
             ).first()
+            logger.info(f'using asset version : {asset_version["version"]}')
 
         if asset_version and asset_version['thumbnail_id']:
             # Update parent and related task if the thumbnail is set.
             parent = asset_version['asset']['parent']
             task = asset_version['task']
             parent['thumbnail_id'] = asset_version['thumbnail_id']
+            logger.info(f'updating parent : {parent["name"]}')
+
 
             if task:
+                logger.info(f'updating task: {task["name"]}')
                 task['thumbnail_id'] = asset_version['thumbnail_id']
 
     session.commit()
