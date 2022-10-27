@@ -5,8 +5,8 @@
 Cascade Thumbnails to Parent
 ============================
 
-When publishing a new asset, it could be convenient to have the parent task updated with the same image.
-This script will show you how to be able to intercept thumbnail creation at publish time and use the same thumbnail id to link to to a parent task.
+When publishing a new asset, it could be convenient to have the thumbnail of the newly published entity bubble up to the parent entity and (optionally) associated task.
+This script will show you how to be able to intercept thumbnail creation at publish time and set the same thumbnail ID on related entities.
 
 Scope
 -----
