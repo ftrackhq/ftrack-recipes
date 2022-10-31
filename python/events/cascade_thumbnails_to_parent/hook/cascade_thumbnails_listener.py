@@ -48,8 +48,10 @@ def cascade_thumbnail(session, event):
             # Update parent and related task if the thumbnail is set.
             parent = asset_version["asset"]["parent"]
             task = asset_version["task"]
-            parent["thumbnail_id"] = asset_version["thumbnail_id"]
-            logger.info(f'updating parent : {parent["name"]}')
+
+            # NOTE: uncomment these lines to also update the parent (shot/sequence/etc...), rather than just the task
+            # parent["thumbnail_id"] = asset_version["thumbnail_id"]
+            # logger.info(f'updating parent : {parent["name"]}')
 
             if task:
                 logger.info(f'updating task: {task["name"]}')
