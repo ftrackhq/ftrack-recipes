@@ -8,7 +8,6 @@ import logging
 import argparse
 import sys
 import json
-
 import ftrack_api
 
 logging.basicConfig(
@@ -22,12 +21,18 @@ logger = logging.getLogger("com.ftrack.recipes.tools.manage_project_schemas")
 class ManageProjectSchemas(object):
     def __init__(self):
 
-        self.session = ftrack_api.Session(auto_connect_event_hub=True)
-
+        self.session = ftrack_api.Session()
+        logger.info(self.session.server_url)
         self.filename = 'project_schemas.json'
         self.parser = self.args = None
 
         self.parse_arguments()
+        if self.args.debug:
+            loggers = [logging.getLogger(name) for name in
+                       logging.root.manager.loggerDict]
+            for log in loggers:
+                logger.info("setting log level debug on %s", log.name)
+                log.setLevel(logging.DEBUG)
 
         # Cache up commonly used Ftrack entities
         logger.info('Loading object types from Ftrack...')
@@ -51,9 +56,14 @@ class ManageProjectSchemas(object):
             self.save_schemas()
         elif self.args.type == "restore":
             self.load_schemas()
+        elif self.args.type == "verify":
+            self.verify_schemas()
+        elif self.args.type == "verify-restore":
+            self.verify_schemas()
+            self.load_schemas()
 
     def parse_arguments(self):
-        """Parse arguments passed to us."""
+        """ Parse arguments passed to us. """
         self.parser = argparse.ArgumentParser()
 
         self.parser.add_argument(
@@ -62,11 +72,19 @@ class ManageProjectSchemas(object):
                 'Backup all ftrack project schemas to a JSON'
                 'file {0} in your current working directory.'.format(self.filename)
             ),
-            choices=['backup', 'restore'],
+            choices=['backup', 'restore', 'verify', 'verify-restore']
         )
 
         self.parser.add_argument(
-            '--dry_run', help='Do not commit data to Ftrack.', action='store_true'
+            '--dry_run',
+            help='Do not commit data to Ftrack.',
+            action='store_true'
+        )
+
+        self.parser.add_argument(
+            '--debug',
+            help='Enable Debug logging',
+            action='store_true'
         )
 
         self.parser.add_argument(
@@ -105,6 +123,13 @@ class ManageProjectSchemas(object):
             s = {'name': ft_status['name']}
             for key in ['color', 'is_active', 'sort']:
                 if key in ft_status:
+                    if key == 'state':
+                        state = {}
+                        ft_state = ft_status[key]
+                        for k in ['name', 'short']:
+                            state[k] = ft_state[k]
+                        s[key] = state
+                        continue
                     s[key] = ft_status[key]
             workflow_schema['statuses'].append(s)
         self.result['workflow_schemas'].append(workflow_schema)
@@ -156,6 +181,42 @@ class ManageProjectSchemas(object):
                     object_type[key] = ft_object_type[key]
             project_schema['object_types'].append(object_type)
 
+    def ft_object_type_to_dict(self, ft_object_type):
+        object_type = {
+            'name': ft_object_type['name']
+        }
+        for key in ['icon', 'is_leaf', 'is_schedulable', 'is_statusable',
+                    'is_taskable',
+                    'is_time_reportable', 'is_typeable', 'sort']:
+            if key in ft_object_type:
+                object_type[key] = ft_object_type[key]
+        return object_type
+
+    def ft_status_to_dict(self, ft_status):
+        s = {
+            'name': ft_status['name']
+        }
+        for key in ['color', 'is_active', 'sort', 'state']:
+            if key in ft_status:
+                if key == 'state':
+                    state = {}
+                    ft_state = ft_status[key]
+                    for k in ['name', 'short']:
+                        state[k] = ft_state[k]
+                    s[key] = state
+                    continue
+                s[key] = ft_status[key]
+        return s
+
+    def ft_type_to_dict(self, ft_type):
+        _type = {
+            'name': ft_type['name'],
+        }
+        for key in ['color', 'is_billable', 'sort']:
+            if key in ft_type:
+                _type[key] = ft_type[key]
+        return _type
+
     def save_object_type_schemas(self, ft_project_schema, project_schema):
         """Save object_type_schemas(Shots, Asset builds etc)."""
         logger.info(
@@ -173,16 +234,12 @@ class ManageProjectSchemas(object):
                     'name'
                 ],
                 'statuses': [
-                    self.status_types_by_id[x['status_id']]['name']
-                    for x in sorted(
-                        ft_object_type_schema['statuses'], key=lambda i: i['sort']
-                    )
+                    self.ft_status_to_dict(self.status_types_by_id[x['status_id']]) for x in
+                    ft_object_type_schema['statuses']
                 ],
                 'types': [
-                    self.types_by_id[x['type_id']]['name']
-                    for x in sorted(
-                        ft_object_type_schema['types'], key=lambda i: i['sort']
-                    )
+                    self.ft_type_to_dict(self.types_by_id[x['type_id']]) for x in
+                    ft_object_type_schema['types']
                 ],
             }
             project_schema['object_type_schemas'].append(object_type_schema)
@@ -498,25 +555,21 @@ class ManageProjectSchemas(object):
                     )
 
                     # Restore its types
-                    for type_name in object_type_schema['types']:
-                        self.session.create(
-                            'SchemaType',
-                            {
-                                'schema_id': ft_object_type_schema['id'],
-                                'type_id': self.get_type(type_name)['id'],
-                            },
-                        )
+                    for type_dict in object_type_schema['types']:
+                        type_name = type_dict['name']
+                        self.session.create('SchemaType', {
+                            'schema_id': ft_object_type_schema['id'],
+                            'type_id': self.get_type(type_name)['id']
+                        })
                         logger.info((16 * ' ') + '+ Type: {}'.format(type_name))
 
                     # And statuses
-                    for status_name in object_type_schema['statuses']:
-                        self.session.create(
-                            'SchemaStatus',
-                            {
-                                'schema_id': ft_object_type_schema['id'],
-                                'status_id': self.get_status(status_name)['id'],
-                            },
-                        )
+                    for status_dict in object_type_schema['statuses']:
+                        status_name = status_dict['name']
+                        self.session.create('SchemaStatus', {
+                            'schema_id': ft_object_type_schema['id'],
+                            'status_id': self.get_status(status_name)['id']
+                        })
                         logger.info((16 * ' ') + '+ Status: {}'.format(status_name))
 
             # Restore overrides
@@ -586,11 +639,170 @@ class ManageProjectSchemas(object):
             except Exception as error:
                 logger.error(error, exc_info=True)
         else:
-            logger.warning(
-                'Dry run, NOT committing Project Schemas to Ftrack based on JSON {}...'.format(
-                    json.dumps(self.result, indent=3)
-                )
-            )
+            logger.warning('Dry run, NOT committing Project Schemas to Ftrack based on JSON {}...'.format(
+                self.result
+            ))
+
+    def ensure_status(self, status):
+        """
+        {
+            "name": "Not started",
+            "color": "#CACACA",
+            "is_active": true,
+            "sort": 12
+        },
+        """
+        ft_status = None
+        try:
+            ft_status = self.session.query('Status where name is "{}"'.format(status['name'].lower())).one()
+
+        except Exception as e:
+            logger.debug(e, exc_info=e)
+            if not self.args.dry_run:
+                ft_state = self.session.query('State where name is "{}"'.format(
+                    status['state']['name'])).one()
+                status['state'] = ft_state
+                ft_status = self.session.create('Status', status)
+
+        return ft_status
+
+    def ensure_types(self, _type):
+        """
+            {
+                    "name": "Producing",
+                    "color": "#FFFF00",
+                    "is_billable": true,
+                    "sort": 0
+                },
+        """
+        ft_type = None
+        try:
+            ft_type = self.session.query('Type where name is "{}"'.format(_type['name'].lower())).one()
+        except Exception as e:
+            logger.debug(e, exc_info=e)
+            if not self.args.dry_run:
+                ft_type = self.session.create('Type', _type)
+        return ft_type
+
+    def ensure_object_types(self, object_type):
+        """
+                {
+                    "name": "Folder",
+                    "icon": "folder",
+                    "is_leaf": false,
+                    "is_schedulable": false,
+                    "is_statusable": false,
+                    "is_taskable": true,
+                    "is_time_reportable": false,
+                    "is_typeable": false,
+                    "sort": 13
+                }
+        """
+        ft_object_type = None
+        try:
+            ft_object_type = self.session.query('ObjectType where name is "{}"'.format(object_type['name'].lower())).one()
+        except Exception as e:
+            logger.debug(e, exc_info=e)
+            if not self.args.dry_run:
+                ft_object_type = self.session.create('ObjectType', object_type)
+        return ft_object_type
+
+    def verify_schemas(self):
+        """ Load workflow schemas from JSON on disk and update Ftrack. """
+
+        self.result = json.load(open(self.args.filename, 'r'))
+
+        logger.info('Checking statuses...')
+
+        self.missing_status = []
+        self.missing_types = []
+        self.missing_object_types = []
+
+        status_cache = []
+        for workflow_schema in self.result.get('workflow_schemas'):
+            for status in workflow_schema['statuses']:
+                if status['name'] not in status_cache:
+                    st = self.ensure_status(status)
+                    status_cache.append(status['name'])
+                    if not st:
+                        self.missing_status.append(status['name'])
+
+        logger.info('Checking types...')
+
+        _type_cache = []
+        for task_schema in self.result.get('task_schemas'):
+            for _type in task_schema['types']:
+                if _type['name'] not in _type_cache:
+                    tp = self.ensure_types(_type)
+                    _type_cache.append(_type['name'])
+                    if not tp:
+                        self.missing_types.append(_type['name'])
+
+        object_type_cache = []
+        logger.info('Checking object types...')
+        for project_schema in self.result['project_schemas']:
+            for object_type in project_schema['object_types']:
+                if object_type['name'].lower() == 'task':
+                    continue
+                if not object_type['name'] in object_type_cache:
+                    ft_object_type = self.ensure_object_types(object_type)
+                    object_type_cache.append(object_type['name'])
+                    if not ft_object_type:
+                        self.missing_object_types.append(object_type['name'])
+            for object_type_schemas in project_schema['object_type_schemas']:
+                """{
+                        "type": "Asset Build",
+                        "statuses": [],
+                        "types": [
+                            "Lighting"
+                        ]
+                    },"""
+                object_type_data = {'name': object_type_schemas['type']}
+                ft_object_type = self.ensure_object_types(object_type_data)
+                if not ft_object_type:
+                    self.missing_object_types.append(object_type_schemas['type'])
+                statuses = object_type_schemas['statuses']
+                if statuses:
+                    for status in statuses:
+                        if status['name'] not in status_cache:
+                            new_status = self.ensure_status(status)
+                            status_cache.append(status['name'])
+                            if not new_status:
+                                self.missing_status.append(status['name'])
+                _types = object_type_schemas['types']
+                if _types:
+                    for t in _types:
+                        if t['name'] not in _type_cache:
+                            new_type = self.ensure_types(t)
+                            _type_cache.append(t['name'])
+                            if not new_type:
+                                self.missing_types.append(t['name'])
+
+        if self.missing_status:
+            logger.info("###### Missing Status ######")
+            for s in sorted(list(set(self.missing_status))):
+                logger.info(s)
+
+        if self.missing_types:
+            logger.info("###### Missing Types #######")
+            for s in sorted(list(set(self.missing_types))):
+                logger.info(s)
+
+        if self.missing_object_types:
+            logger.info("###### Missing Object Types #######")
+            for s in sorted(list(set(self.missing_object_types))):
+                logger.info(s)
+
+        # No changes has been made yet, commit to Ftrack unless dry run
+        if not self.args.dry_run:
+            logger.info('Committing Project Schemas to Ftrack...')
+            try:
+                self.session.commit()
+            except Exception as error:
+                logger.error(error, exc_info=True)
+        else:
+            logger.warning('Attention, Dry Run, this is not committing the Project Schema to Ftrack')
+
 
 
 if __name__ == '__main__':
