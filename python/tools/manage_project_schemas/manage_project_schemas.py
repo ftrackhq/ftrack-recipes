@@ -801,10 +801,7 @@ class ManageProjectSchemas(object):
             except Exception as error:
                 logger.error(error, exc_info=True)
         else:
-            pass
-            # logger.warning('Dry run, NOT committing Project Schemas to Ftrack based on JSON {}...'.format(
-            #     json.dumps(self.result, indent=3)
-            # ))
+            logger.warning('Attention, Dry Run, this is not committing the Project Schema to Ftrack')
 
 
 
