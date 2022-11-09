@@ -34,8 +34,8 @@ Virtualenv
 To ensure a sandboxed experience, we suggest to use **virtualenv**.
 Here few links on how to install and activate it.
 
-* `install virtualenv <https://virtualenv.pypa.io/en/stable/installation/>`_
-* `activate virtualenv <https://virtualenv.pypa.io/en/stable/userguide/?highlight=activate>`_
+* `install virtualenv <https://virtualenv.pypa.io/en/latest/installation.html>`_
+* `activate virtualenv <https://virtualenv.pypa.io/en/latest/user_guide.html>`_
 
 
 Dependencies
