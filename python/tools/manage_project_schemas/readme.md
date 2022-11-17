@@ -1,16 +1,16 @@
 copyright: Copyright (c) 2014-2022 ftrack
 
-## Manage Project Schemas
+# Manage Project Schemas
 
 A command line tools that export a single or all project schemas to JSON, with an option to restore schemas.
 
-### Scope
+## Scope
 
 
 * Backup project schema(s)
 * Restore project schema(s), with rename.
 
-### Running
+## Running
 
 
 Backing up a specific schema:
@@ -33,14 +33,14 @@ Help:
     python manage_project_schemas.py --help
 ```
 
-### Dependencies
+## Dependencies
 
 * ftrack_api
 
 
-### save roundtrip for schema crossdomain replication
+## save roundtrip for schema crossdomain replication
 
-#### suffcient rights on the current role and/or api key are expected
+Sufficient rights on the current role and/or api key are expected
 
 - backup
 ```cmd
