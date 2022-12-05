@@ -36,6 +36,9 @@ ftrack_api_user = os.environ.get("FTRACK_API_USER")
 # Folder to watch
 watchFolder = os.environ.get("FTRACK_VERSION_WATCHFOLDER")
 
+# Task status for upload
+task_status = 'QC Ready'
+
 if not any([ftrack_server, ftrack_api_key, ftrack_api_user]):
     msg = "Missing environment configuration for setting up ftrack session."
     logger.error(msg)
@@ -65,20 +68,20 @@ class Watcher(object):
 
     def __init__(self, watchFolder):
         self.watchFolder = normpath(watchFolder)
-        logger.info("Set watchFolder to {}".format(self.watchFolder))
+        logger.info(f'Set watchFolder to {self.watchFolder}')
 
     def run(self):
         eventHandler = Handler()
         self.observer.schedule(eventHandler, self.watchFolder, recursive=True)
         self.observer.start()
-        logger.info("Watcher started!")
+        logger.info('Watcher started!')
 
         try:
             while True:
                 time.sleep(5)
         except Exception as e:
             self.observer.stop()
-            logger.error("Error: {}".format(str(e)))
+            logger.error(f'Error: {e}')
 
         self.observer.join()
 
@@ -97,18 +100,18 @@ class Handler(FileSystemEventHandler):
 
         if event.is_directory:
             # Do nothing for new directories
-            logger.debug("{} is a folder, doing nothing".format(event.src_path))
+            logger.debug(f'{event.src_path} is a folder, doing nothing')
             return None
 
         elif event.event_type == "modified":
             # Do nothing for modified files
-            logger.debug("{}  has been modified, doing nothing".format(event.src_path))
+            logger.debug(f'{event.src_path}  has been modified, doing nothing')
             return None
 
         elif event.event_type == "created":
             # If this is a new file, process it
             filePath = event.src_path
-            logger.debug("Event created {}".format(filePath))
+            logger.debug(f'Event created {filePath}')
 
             donePath = os.path.join(watchFolder, "done")
             duplicatePath = os.path.join(watchFolder, "duplicates")
@@ -124,7 +127,7 @@ class Handler(FileSystemEventHandler):
                 # old version below
                 # if re.match(re.compile("(" + donePath + "|" + duplicatePath + ").*", re.IGNORECASE), filePath):
                 # Ignore stuff in done or duplicates folder
-                logger.debug("Skipping done/dup file  {}".format(filePath))
+                logger.debug(f'Skipping done/dup file: {filePath}')
                 return None
 
             try:
@@ -142,16 +145,14 @@ class Handler(FileSystemEventHandler):
                     # Wait until the file has finished copying so we know for sure it's all there
                     while hasHandle(filePath):
                         logger.debug(
-                            "Waiting for {} to finish copying...".format(filePath)
+                            f'Waiting for {filePath} to finish copying...'
                         )
                         time.sleep(3)
 
                     # Check if this file exists in done folder
                     if os.path.isfile(doneFile):
                         logger.warning(
-                            "Skipping  {} as this exists in done folder. Please delete there if uploading again.".format(
-                                filePath
-                            )
+                            f'Skipping  {filePath} as this exists in done folder. Please delete there if uploading again.'
                         )
 
                         # Move file to duplicate directory
@@ -167,7 +168,7 @@ class Handler(FileSystemEventHandler):
 
             except Exception as e:
                 # raise
-                logger.error("Skipping {} due to {}".format(filePath, str(e)))
+                logger.error(f'Skipping {filePath} due to {e}')
 
 
 def uploadToFtrack(uploadFile):
@@ -191,128 +192,118 @@ def uploadToFtrack(uploadFile):
         shotName = None
         try:
             # Extract shot, task and version from filename using the current regex
-            logger.debug("Trying regex {}".format(regex))
+            logger.debug(f'Trying regex {regex}')
             regexSearch = re.search(re.compile(regex, re.IGNORECASE), filename)
             shotName = regexSearch.group(1)
             taskName = regexSearch.group(2)
             version = int(regexSearch.group(3).replace("v", ""))
         except:
             # Couldn't match naming conventions, so try the next regex
-            logger.debug("No match - passing")
+            logger.debug('No match - passing')
             pass
 
         # Try getting matching shot in ftrack
         if shotName is not None:
-            logger.debug("shotName: {}.".format(shotName))
+            logger.debug(f'shotName: {shotName}.')
             try:
                 # Get the shot ID for shotName in ftrack
                 shotID = session.query(
-                    'select id from Shot where name is "{}"'.format(shotName)
+                    f'select id from Shot where name is "{shotName}"'
                 ).first()["id"]
                 break
             except:
                 # Unable to find shot, so try the next regex
                 logger.debug(
-                    "No shot found in ftrack named: {} - passing.".format(shotName)
+                    f'No shot found in ftrack named: {shotName} - passing.'
                 )
                 pass
 
     # If we get here and shotName hasn't been set, we failed to match all naming conventions
     if shotName is None:
-        raise Exception("Failed to match any naming conventions")
+        raise Exception('Failed to match any naming conventions')
 
     # If we get here and shotID hasn't been set, we couldn't find a valid shot in ftrack
     if shotID is None:
         raise Exception(
-            "Failed to find a matching shot {} in ftrack for {}.".format(
-                shotName, filename
+            f'Failed to find a matching shot {shotName} in ftrack for {filename}.'
             )
-        )
 
-    logger.debug("shot id : {}".format(shotID))
+    logger.debug(f'shot id : {shotID}')
 
     # Find matching task under that shot in ftrack
     try:
         task = session.query(
-            'Task where name is "{}" and parent.id is "{}"'.format(taskName, shotID)
+            f'Task where name is "{taskName}" and parent.id is "{shotID}"'
         ).first()
     except Exception as e:
         raise Exception(
-            "Error looking for task {} under shot {} in ftrack: {}".format(
-                taskName, shotName, str(E)
+            f'Error looking for task {taskName} under shot {shotName} in ftrack: {e}'
             )
-        )
 
-    logger.debug("ftrack task : {}".format(task))
+    logger.debug(f'ftrack task : {task}')
 
     try:
         # Get task parent for linking
-        logger.info("Getting ftrack links for {} ...".format(uploadFile))
+        logger.info('Getting ftrack links for {uploadFile} ...')
         assetParent = task["parent"]
         assetParentID = assetParent["id"]
     except:
         raise Exception(
-            "Unable to find task {taskName}  under shot {shotName} in ftrack".format(
-                taskName, shotName
-            )
+            f'Unable to find task {taskName}  under shot {shotName} in ftrack'
         )
 
-    logger.debug("asset parent : {}".format(assetParent))
+    logger.debug(f'asset parent : {assetParent}')
 
     # Get asset
     assetName = re.sub(re.compile("\.(mov|qt|mp4)$", re.IGNORECASE), "", filename)
     assetType = "Upload"
     try:
         asset = session.query(
-            'Asset where parent.id is "{}" and name is "{assetName}"'.format(
-                assetParentID, assetName
-            )
+            f'Asset where parent.id is "{assetParentID}" and name is "{assetName}"'
         ).one()
-        logger.debug("Using existing asset : {}").format(assetName)
+        logger.debug(f'Using existing asset : {assetName}')
 
     except:
         # If asset doesn't exist, create it
         logger.debug(
-            "Creating new asset : {} of type: {} ".format(assetName, assetType)
+            f'Creating new asset : {assetName} of type: {assetType}'
         )
 
         # Get asset type entity
-        assetType = session.query("AssetType where name is {}".format(assetType)).one()
+        assetType = session.query(f'AssetType where name is {assetType}').one()
 
-        logger.debug("assetType: {}".format(assetType))
+        logger.debug(f'assetType: {assetType}')
 
         asset = session.create(
             "Asset", {"name": assetName, "type": assetType, "parent": assetParent}
         )
-        logger.debug("Created new asset : {} of type: {} ".format(assetName, assetType))
+        logger.debug(f'Created new asset : {assetName} of type: {assetType}')
 
     try:
         # Try getting existing assetversion
         assetVersion = session.query(
-            "AssetVersion where asset.id is '{0}' and task.id is '{1}' and version is '{2}'".format(
-                asset["id"], task["id"], version
-            )
+            f'AssetVersion where asset.id is "{asset["id"]}" and task.id is "{ task["id"]}" and version is "{version}"'
         ).one()
-        logger.debug("Got existing assetversion: {} ".format(assetVersion))
+        logger.debug(f'Got existing assetversion: {assetVersion}')
 
     except:
         # Create a new assetversion for this if one didn't already exist
         assetVersion = session.create(
             "AssetVersion", {"asset": asset, "task": task, "version": version}
         )
-        logger.debug("Created new assetversion: {}".format(assetVersion))
+        logger.debug(f'Created new assetversion: {assetVersion}')
 
         session.commit()
 
-    logger.info("Uploading {} to ftrack...".format(uploadFile))
+    logger.info(f'Uploading {uploadFile} to ftrack...')
 
     # Upload media
     job = assetVersion.encode_media(uploadFile, keep_original="True")
-    logger.debug("Job: {} ".jon(job))
+    logger.debug(f'Job: {job} ')
 
     jobData = json.loads(job["data"])
-    logger.debug("Job Data: {} ".format(jobData))
-    logger.debug("Source component id {}".format(jobData["source_component_id"]))
+    logger.debug(f'Job Data: {jobData}')
+    logger.debug(f'Source component id {jobData["source_component_id"]}')
 
     # if DEBUG: print("Keeping original component = " + str(jobData["keep_original"]))
     # for output in jobData["output"]:
@@ -325,13 +316,13 @@ def uploadToFtrack(uploadFile):
     sourceComponent["name"] = assetName
 
     # Flip task status to QC Ready
-    taskStatus = session.query("Status where name is '{0}'".format("QC Ready")).first()
+    taskStatus = session.query(f'Status where name is "{task_status}"').first()
     task["status"] = taskStatus
 
     # Commit everything
     session.commit()
 
-    logger.info("{}  uploaded to ftrack as {}".format(uploadFile, assetVersion))
+    logger.info(f'{uploadFile}  uploaded to ftrack as {assetVersion}')
 
     return True
 
