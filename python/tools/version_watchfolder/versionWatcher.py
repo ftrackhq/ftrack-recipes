@@ -3,22 +3,21 @@
 # :copyright: Copyright (c) 2022 Walt Jones
 
 import os
+from os.path import normpath
 import sys
 import time
 import logging
-import tempfile
-import ntpath
 import shutil
 import psutil
 import glob
 import re
-from os.path import normpath
-import ftrack_api
 import json
-from watchdog.observers import Observer
+
 from watchdog.observers.polling import PollingObserver
 from watchdog.events import FileSystemEventHandler
 from watchdog.events import FileCreatedEvent
+
+import ftrack_api
 
 
 logging.basicConfig(
@@ -36,10 +35,11 @@ ftrack_api_user = os.environ.get("FTRACK_API_USER")
 # Folder to watch
 watch_folder = os.environ.get("FTRACK_VERSION_WATCHFOLDER")
 
-# Default regular expression, matches : TLW_306_016_010
+# Default regular expression, matches : TLW_306_016_010_v001 --> <project>_<sequence>_<shot>_<task>_v<version>
+
 default_regex = os.environ.get(
     'FTRACK_VERSION_WATCHFOLDER_REGEX', 
-    '([A-Z]+[_\-]?[\d]+[_\-][A-Z\d]+(?:[_\-][\d]+)?)(?:[_\-](COMP)[_\-]lut)(?:[_\-](v\d+))\.[#A-Z\d]+'
+    '(?P<project>[a-zA-Z0-9-].+)(?:[_])(?P<sequence>[a-zA-Z0-9-].+)(?:[_])(?P<shot>[a-zA-Z0-9-].+)(?:[_])(?P<task>[a-zA-Z0-9-].+)(?:[_])(?:[v](?P<version>[\d].+))'
 )
 
 # Task status for upload
@@ -60,7 +60,7 @@ if not watch_folder:
     raise ValueError(msg)
 
 
-def hasHandle(fpath):
+def has_handle(fpath):
     # Check if the file is open somewhere
     for proc in psutil.process_iter():
         try:
@@ -95,11 +95,11 @@ class Watcher(object):
 
         self.observer.join()
 
-        def stop(self):
-            self.observer.stop()
+    def stop(self):
+        self.observer.stop()
 
-        def join(self):
-            self.observer.join()
+    def join(self):
+        self.observer.join()
 
 
 class Handler(FileSystemEventHandler):
@@ -117,7 +117,7 @@ class Handler(FileSystemEventHandler):
 
         elif event.event_type == "modified":
             # Do nothing for modified files
-            logger.debug(f'{event.src_path}  has been modified, doing nothing')
+            logger.debug(f'{event.src_path} has been modified, doing nothing')
             return None
 
         elif event.event_type == "created":
@@ -152,7 +152,7 @@ class Handler(FileSystemEventHandler):
                     duplicate_file = os.path.join(duplicate_path, tail)
 
                     # Wait until the file has finished copying so we know for sure it's all there
-                    while hasHandle(file_path):
+                    while has_handle(file_path):
                         logger.debug(
                             f'Waiting for {file_path} to finish copying...'
                         )
@@ -213,10 +213,13 @@ def upload_to_ftrack(upload_file):
         try:
             # Extract shot, task and version from filename using the current regex
             logger.debug(f'Trying regex {regex}')
-            regex_search = re.search(re.compile(regex, re.IGNORECASE), file_name)
-            shot_name = regex_search.group(1)
-            task_name = regex_search.group(2)
-            version = int(regex_search.group(3).replace("v", ""))
+            rx = re.compile(regex, re.IGNORECASE)
+            match = rx.match(file_name)
+            if match:
+                result_dicts = match.groupdict()
+                shot_name = result_dicts.get('shot')
+                task_name = result_dicts.get('task')
+                version = int(result_dicts.get('version'))
         except:
             # Couldn't match naming conventions, so try the next regex
             logger.debug('No match - passing')
@@ -323,10 +326,6 @@ def upload_to_ftrack(upload_file):
     job_data = json.loads(job["data"])
     logger.debug(f'Job Data: {job_data}')
     logger.debug(f'Source component id {job_data["source_component_id"]}')
-
-    # if DEBUG: print("Keeping original component = " + str(jobData["keep_original"]))
-    # for output in jobData["output"]:
-    #    print("Output component - id: {0} format: {1}".format(output["component_id"], output["format"]))
 
     # Fix name on original component
     source_component = session.get(
