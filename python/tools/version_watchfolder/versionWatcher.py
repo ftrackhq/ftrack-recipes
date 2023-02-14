@@ -35,15 +35,15 @@ ftrack_api_user = os.environ.get("FTRACK_API_USER")
 # Folder to watch
 watch_folder = os.environ.get("FTRACK_VERSION_WATCHFOLDER")
 
-# Default regular expression, matches : TLW_306_016_010_v001 --> <project>_<sequence>_<shot>_<task>_v<version>
+# Default regular expression, matches : TLW_306_016_010_v001 --> <project>_<shot>_<task>_v<version>
 
 default_regex = os.environ.get(
     'FTRACK_VERSION_WATCHFOLDER_REGEX', 
-    '(?P<project>[a-zA-Z0-9-].+)(?:[_])(?P<sequence>[a-zA-Z0-9-].+)(?:[_])(?P<shot>[a-zA-Z0-9-].+)(?:[_])(?P<task>[a-zA-Z0-9-].+)(?:[_])(?:[v](?P<version>[\d].+))'
+    '(?P<project>[a-zA-Z0-9-].+)(?:[_])(?P<shot>[a-zA-Z0-9-].+)(?:[_])(?P<task>[a-zA-Z0-9-].+)(?:[_])(?:[v](?P<version>[\d].+))'
 )
 
 # Task status for upload
-task_status = 'QC Ready'
+task_status = 'In Progress'
 
 # Upload asset type
 asset_type = "Upload"
@@ -210,6 +210,9 @@ def upload_to_ftrack(upload_file):
     # Try matching files against each regex until we succeed getting a matching shot in ftrack
     for regex in regex_list:
         shot_name = None
+        task_name = None
+        version = 0
+
         try:
             # Extract shot, task and version from filename using the current regex
             logger.debug(f'Trying regex {regex}')
@@ -267,12 +270,11 @@ def upload_to_ftrack(upload_file):
 
     try:
         # Get task parent for linking
-        logger.info('Getting ftrack links for {uploadFile} ...')
         asset_parent = task["parent"]
         asset_parent_id = asset_parent["id"]
     except:
         raise Exception(
-            f'Unable to find task {task_name}  under shot {shot_name} in ftrack'
+            f'Unable to find task {task_name} under shot {shot_name} in ftrack'
         )
 
     logger.debug(f'asset parent : {asset_parent}')
