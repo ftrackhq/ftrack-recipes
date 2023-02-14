@@ -39,7 +39,7 @@ watch_folder = os.environ.get("FTRACK_VERSION_WATCHFOLDER")
 
 default_regex = os.environ.get(
     'FTRACK_VERSION_WATCHFOLDER_REGEX', 
-    '(?P<project>[a-zA-Z0-9-].+)(?:[_])(?P<shot>[a-zA-Z0-9-].+)(?:[_])(?P<task>[a-zA-Z0-9-].+)(?:[_])(?:[v](?P<version>[\d].+))'
+    '(?P<project>[a-zA-Z0-9-].+)(?:[_])(?P<shot>[a-zA-Z0-9-].+)(?:[_])(?P<task>[a-zA-Z0-9-].+)(?:[_])(?:[v](?P<version>[\d]+))'
 )
 
 # Task status for upload
@@ -47,6 +47,7 @@ task_status = 'In Progress'
 
 # Upload asset type
 asset_type = "Upload"
+
 
 
 if not any([ftrack_server, ftrack_api_key, ftrack_api_user]):
@@ -184,110 +185,47 @@ def upload_to_ftrack(upload_file):
     global task_status
     global asset_type
 
-    file_path, file_name = os.path.split(upload_file)
-
+    file_name = os.path.basename(upload_file)
+    logger.info(f"found file {file_name}")
     # Set up ftrack connection
     session = ftrack_api.Session()
 
-    # Get all naming regex from ftrack and remove any duplicates for efficiency
-    regex_list = []
-    results = session.query(
-        "select custom_attributes from Project where status is 'active'"
-    ).all()
-    for result in results:
-        regex = None
-        try:
-            result["custom_attributes"]["ftrackRegEx"]
-        except Exception as error:
-            logger.error(f'{error}, using default regex : {default_regex}')
-            regex = default_regex
+    project_name = None
+    shot_name = None
+    task_name = None
+    version = None
 
-        regex_list.append(regex)
+    # Extract shot, task and version from filename using the current regex
+    rx = re.compile(default_regex, re.IGNORECASE)
+    match = rx.match(file_name)
+    if match:
+        result_dicts = match.groupdict()
+        logger.info(f"parsed {result_dicts}")
+        project_name = result_dicts.get('project')
+        shot_name = result_dicts.get('shot')
+        task_name = result_dicts.get('task')
+        version = int(result_dicts.get('version', 1))
+    else:
+        raise ValueError(f'Could not extract value from : {file_name} with regular expression : {default_regex}')
 
-    regex_list = list(dict.fromkeys(regex_list))
 
-    shot_id = None
-    # Try matching files against each regex until we succeed getting a matching shot in ftrack
-    for regex in regex_list:
-        shot_name = None
-        task_name = None
-        version = 0
+    task = session.query(f'select name, parent, project from Task where name is "{task_name}" and project.name is "{project_name}" and parent.name is "{shot_name}"').first()
+    
+    if not task:
+        raise ValueError(f'Could not find a task named {task_name} under {project_name}/{shot_name}')
 
-        try:
-            # Extract shot, task and version from filename using the current regex
-            logger.debug(f'Trying regex {regex}')
-            rx = re.compile(regex, re.IGNORECASE)
-            match = rx.match(file_name)
-            if match:
-                result_dicts = match.groupdict()
-                shot_name = result_dicts.get('shot')
-                task_name = result_dicts.get('task')
-                version = int(result_dicts.get('version'))
-        except:
-            # Couldn't match naming conventions, so try the next regex
-            logger.debug('No match - passing')
-            pass
-
-        # Try getting matching shot in ftrack
-        if shot_name is not None:
-            logger.debug(f'shotName: {shot_name}.')
-            try:
-                # Get the shot ID for shotName in ftrack
-                shot_id = session.query(
-                    f'select id from Shot where name is "{shot_name}"'
-                ).first()["id"]
-                break
-            except:
-                # Unable to find shot, so try the next regex
-                logger.debug(
-                    f'No shot found in ftrack named: {shot_name} - passing.'
-                )
-                pass
-
-    # If we get here and shotName hasn't been set, we failed to match all naming conventions
-    if shot_name is None:
-        raise Exception('Failed to match any naming conventions')
-
-    # If we get here and shotID hasn't been set, we couldn't find a valid shot in ftrack
-    if shot_id is None:
-        raise Exception(
-            f'Failed to find a matching shot {shot_name} in ftrack for {file_name}.'
-            )
-
-    logger.debug(f'shot id : {shot_id}')
-
-    # Find matching task under that shot in ftrack
-    try:
-        task = session.query(
-            f'Task where name is "{task_name}" and parent.id is "{shot_id}"'
-        ).first()
-    except Exception as e:
-        raise Exception(
-            f'Error looking for task {task_name} under shot {shot_name} in ftrack: {e}'
-            )
-
-    logger.debug(f'ftrack task : {task}')
-
-    try:
-        # Get task parent for linking
-        asset_parent = task["parent"]
-        asset_parent_id = asset_parent["id"]
-    except:
-        raise Exception(
-            f'Unable to find task {task_name} under shot {shot_name} in ftrack'
-        )
-
-    logger.debug(f'asset parent : {asset_parent}')
+    # Get task parent for linking
+    asset_parent = task["parent"]
+    asset_parent_id = asset_parent['id']
 
     # Get asset
     assetName = re.sub(re.compile("\.(mov|qt|mp4)$", re.IGNORECASE), "", file_name)
-    try:
-        asset = session.query(
-            f'Asset where parent.id is "{asset_parent_id}" and name is "{assetName}"'
-        ).one()
-        logger.debug(f'Using existing asset : {assetName}')
 
-    except:
+    asset= session.query(
+            f'Asset where parent.id is "{asset_parent_id}" and name is "{assetName}"'
+        ).first()
+    
+    if not asset:
         # If asset doesn't exist, create it
         logger.debug(
             f'Creating new asset : {assetName} of type: {asset_type}'
@@ -295,22 +233,15 @@ def upload_to_ftrack(upload_file):
 
         # Get asset type entity
         ftrack_asset_type = session.query(f'AssetType where name is {asset_type}').one()
-
-        logger.debug(f'assetType: {ftrack_asset_type}')
-
         asset = session.create(
             "Asset", {"name": assetName, "type": ftrack_asset_type, "parent": asset_parent}
         )
-        logger.debug(f'Created new asset : {assetName} of type: {ftrack_asset_type}')
 
-    try:
-        # Try getting existing assetversion
-        asset_version = session.query(
-            f'AssetVersion where asset.id is "{asset["id"]}" and task.id is "{ task["id"]}" and version is "{version}"'
-        ).one()
-        logger.debug(f'Got existing assetversion: {asset_version}')
-
-    except:
+    # Try getting existing assetversion
+    asset_version = session.query(
+        f'AssetVersion where asset.id is "{asset["id"]}" and task.id is "{ task["id"]}" and version is "{version}"'
+    ).first()
+    if not asset_version:
         # Create a new assetversion for this if one didn't already exist
         asset_version = session.create(
             "AssetVersion", {"asset": asset, "task": task, "version": version}
