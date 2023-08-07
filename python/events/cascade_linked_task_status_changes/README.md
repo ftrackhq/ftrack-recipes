@@ -1,19 +1,18 @@
-# Cascade Status Change
+# Cascade Linked Task Status Change
 
-Just like Tasks, a Shot Object has its own status, separate from the
-statuses of its child Tasks. However, on the Tasks spreadsheet, this
-underlying status is not displayed; instead the Shot status reflects
-that of its children. We will add an event handler to update a Shot
-status as appropriate when a child Task is updated.
+If you have a series of linked tasks, this event handler will trigger
+downstream task status changes. When an upstream task status is set to
+"Approved" then this event handler then sets any linked, outgoing (downstream)
+tasks to a status of "Ready".
 
 ## Scope
 
 -   Monitor Task status changes
--   Update Shot status if appropriate
+-   Update linked, outgoing (downstream) task status if appropriate
 
 ## Install and setup
 
-1\. Make the cascade plugin available to the API either by setting the
+1\. Make the plugin available to the API either by setting the
 FTRACK_EVENT_PLUGIN_PATH environment variable to
 \<custom-location-folder\>. Alternatively use the plugin_paths in the
 ftrack_api.Session constructor and point it to

@@ -8,7 +8,7 @@ import ftrack_api
 logger = logging.getLogger('com.ftrack.recipes.cascade_status_change')
 
 """
-When an upstream task status is set to "Approved", then set all downstream task
+When an upstream task status is set to "Approved", then set its downstream task
 status to "Ready"
 
 """
@@ -79,7 +79,7 @@ def update_outgoing_task_status(session, event):
     entities = event['data'].get('entities', [])
     for entity in entities:
 
-        if is_task_status_change(entity): # TODO investigate
+        if is_task_status_change(entity):
 
             print('---------------------------------------------------------------')
 
@@ -106,6 +106,7 @@ def update_outgoing_task_status(session, event):
 
                     print('Upstream Task is now "Approved"...')
 
+                    session.populate(task, 'outgoing_links')
                     outgoing_links = task['outgoing_links']
 
                     print("Number of downstream tasks: {}".format(len(outgoing_links)))
