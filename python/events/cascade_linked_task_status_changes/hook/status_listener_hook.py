@@ -183,12 +183,7 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     # Remember, in version version 2.0 of the ftrack-python-api the default
     # behavior will change from True to False.
-    session = ftrack_api.Session(
-        auto_connect_event_hub=True,
-        server_url='https://ftrack-studio-demo-dan.ftrackapp.com',
-        api_key='Y2M4MmYzODAtZDFjMy00YTYzLWI3YWItNDczMDQ4MGQzZDQ4Ojo1ZWQwNGMzZi04NDliLTRlY2QtOTg3NC0wOWY2NjNiNTNjOGM',
-        api_user='dh'
-    )
+    session = ftrack_api.Session(auto_connect_event_hub=True)
     register(session)
     logging.info('Registered actions and listening for events. Use Ctrl-C to abort.')
     session.event_hub.wait()
