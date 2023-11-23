@@ -1,7 +1,10 @@
+// :copyright: Copyright (c) 2023 ftrack
+
 import { Session } from "@ftrack/api";
 const FTRACK_SERVER_URL = "";
 const FTRACK_API_USER = "";
 const FTRACK_API_KEY = "";
+
 class TimelogEditAction {
   static label = "Timelogs";
   static identifier = "show.edit.timelogs";
@@ -17,20 +20,20 @@ class TimelogEditAction {
     // Subscribe to the action discover topic - responsible for showing the action button
     this.session.eventHub.subscribe(
       `topic=ftrack.action.discover`,
-      this.discover.bind(this)
+      this.discover.bind(this),
     );
 
     // Subscribe to the action launch topic - responsible for showing the action form
     this.session.eventHub.subscribe(
       `topic=ftrack.action.launch`,
-      this.launch.bind(this)
+      this.launch.bind(this),
     );
   }
 
   // Method to handle the discovery of actions, when the Action should be available
   // This is where you would do any filtering, for different entity types, different users etc.
   // Note:
-  // The example does not include any access restrictions, and is run with the permissions of the API user that runs the action, and available for every user. 
+  // The example does not include any access restrictions, and is run with the permissions of the API user that runs the action, and available for every user.
   // It is therefore not recommended for production use before adding approperiate access controls.
   discover(event) {
     const data = event.data;
@@ -72,7 +75,7 @@ class TimelogEditAction {
       // Query for timelogs associated with the entity
       const query = await this.session.query(
         `select id, comment, context_id, duration, name, start, user.first_name, user.last_name from Timelog where context_id is ${entityId}`,
-        { decodeDatesAsIso: true }
+        { decodeDatesAsIso: true },
       );
       // Handle cases where no timelogs are found
       if (!query.data.length) {
@@ -84,7 +87,7 @@ class TimelogEditAction {
 
       // Format the timelog data into the form data
       const items = query.data.flatMap((data, index) =>
-        this.formatTimelogItem(data, index)
+        this.formatTimelogItem(data, index),
       );
       // Return the form items
       return { items };
@@ -136,7 +139,7 @@ class TimelogEditAction {
 
     // Update remaining timelogs, filtering away the timelogs deleted timelogs.
     const updatedValues = Object.fromEntries(
-      Object.entries(values).filter(([key]) => !deletions.includes(key))
+      Object.entries(values).filter(([key]) => !deletions.includes(key)),
     );
 
     for (const [key, [comment, duration]] of Object.entries(updatedValues)) {
@@ -160,7 +163,7 @@ const session = new Session(
   {
     autoConnectEventHub: true,
     strictApi: true,
-  }
+  },
 );
 
 // Register the action with the session
