@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@ftrack/api": "^1.8.6",
+    "ws": "^8.14.2"
+  }
+}
