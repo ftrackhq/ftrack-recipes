@@ -1,9 +1,16 @@
 // :copyright: Copyright (c) 2023 ftrack
 
 import { Session } from "@ftrack/api";
-const FTRACK_SERVER_URL = "";
-const FTRACK_API_USER = "";
-const FTRACK_API_KEY = "";
+// Read FTRACK server URL, API user, and API key from environment variables
+const FTRACK_SERVER_URL = process.env.FTRACK_SERVER_URL;
+const FTRACK_API_USER = process.env.FTRACK_API_USER;
+const FTRACK_API_KEY = process.env.FTRACK_API_KEY;
+
+// Ensure that all environment variables are set
+if (!FTRACK_SERVER_URL || !FTRACK_API_USER || !FTRACK_API_KEY) {
+  console.error("Please set all FTRACK environment variables (FTRACK_SERVER_URL, FTRACK_API_USER, FTRACK_API_KEY)");
+  process.exit(1);
+}
 
 class TimelogEditAction {
   static label = "Timelogs";
