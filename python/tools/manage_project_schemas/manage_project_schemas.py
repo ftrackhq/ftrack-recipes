@@ -346,8 +346,7 @@ class ManageProjectSchemas(object):
                     'save_asset_version_workflow_schema': self.save_asset_version_workflow_schema,
                 }.items()
             ):
-                if key in ft_project_schema:
-                    fn(ft_project_schema, project_schema)
+                fn(ft_project_schema, project_schema)
 
             self.result['project_schemas'].append(project_schema)
 
