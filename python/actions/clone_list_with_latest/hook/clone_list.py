@@ -9,11 +9,11 @@ from ftrack_action_handler.action import BaseAction
 
 
 class CloneList(BaseAction):
-    '''Cline list class.'''
+    '''Clone list class.'''
 
     label = 'Clone List with Latest versions'
     identifier = 'com.ftrack.recipes.clone_list'
-    description = 'Clone list and update with latest versions available'
+    description = 'Clone list and update with latest versions available.'
     
     def validate_selection(self, entities):
         '''Return True if the selection is valid.
