@@ -64,7 +64,6 @@ class CloneList(BaseAction):
                 }
             )
                 
-            print(new_list)
             session.commit()
             
         return {'success': True, 'message': f'Successfully generated list {listname}.'}
