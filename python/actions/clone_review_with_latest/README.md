@@ -1,11 +1,11 @@
-# Clone list with latest versions
+# Clone review with latest versions
 
-Example action to clone a list and inlclude the same versions but moved to latest ones.
+Example action to clone a review and include the same versions but moved to latest ones.
 
 ## Scope
 
 -   Register the action and/or event listener
--   Clone list
+-   Clone review
 -   Update versions
 
 ## Install and setup

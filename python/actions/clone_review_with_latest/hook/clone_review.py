@@ -8,12 +8,12 @@ import datetime
 from ftrack_action_handler.action import BaseAction
 
 
-class CloneList(BaseAction):
-    '''Clone list class.'''
+class CloneReview(BaseAction):
+    '''Clone review class.'''
 
-    label = 'Clone List with Latest versions'
-    identifier = 'com.ftrack.recipes.clone_list'
-    description = 'Clone list and update with latest versions available.'
+    label = 'Clone review with Latest versions'
+    identifier = 'com.ftrack.recipes.clone_review'
+    description = 'Clone review and update with latest versions available.'
     
     def validate_selection(self, entities):
         '''Return True if the selection is valid.
@@ -29,7 +29,7 @@ class CloneList(BaseAction):
             return False
         
         entity_type, entity_id = entities[0]
-        if entity_type == 'List':
+        if entity_type == 'ReviewSession':
             return True
 
         return False
@@ -46,27 +46,30 @@ class CloneList(BaseAction):
         '''Return result of running action.'''
 
         for entity_type, entity_id in entities:
-            asset_list = session.get(entity_type, entity_id)
-            latest_versions = set()
-            versions = asset_list['items']
-            for version in versions:
-                latest_version  = session.query(f'AssetVersion where asset_id is {version["asset_id"]} and is_latest_version is True').one()
-                latest_versions.add(latest_version)
+            review_session = session.get(entity_type, entity_id)
+            new_review_objects = []
+            objects = review_session['review_session_objects']
+            for object in objects:
+                latest_version  = session.query(f'AssetVersion where asset_id is {object["asset_version"]["asset_id"]} and is_latest_version is True').one()
+                new_session_object = session.create('ReviewSessionObject', {'asset_version': latest_version})
+                new_review_objects.append(new_session_object)
 
-            listname = datetime.datetime.now().strftime("%d/%m/%Y")
+            review_name = datetime.datetime.now().strftime("%d/%m/%Y")
             new_list = session.create(
-                'AssetVersionList', 
-                {
-                    'project_id':asset_list['project_id'], 
-                    'name':listname, 
-                    'category': asset_list['category'],
-                    'items':list(latest_versions)
-                }
+                'ReviewSession', 
+                   {
+                       'name': review_name,
+                       'project_id': review_session['project_id'],
+                       'review_session_invitees': review_session['review_session_invitees'],
+                       'review_session_objects': new_review_objects,
+                       'settings': review_session['settings']
+                       
+                   }
             )
                 
             session.commit()
             
-        return {'success': True, 'message': f'Successfully generated list {listname}.'}
+        return {'success': True, 'message': f'Successfully generated review with name : {review_name}.'}
     
         
         
@@ -79,7 +82,7 @@ def register(api_object, **kw):
     if not isinstance(api_object, ftrack_api.session.Session):
         return
 
-    action = CloneList(api_object)
+    action = CloneReview(api_object)
     action.register()
 
 
