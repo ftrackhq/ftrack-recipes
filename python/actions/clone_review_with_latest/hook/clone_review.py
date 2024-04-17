@@ -54,7 +54,14 @@ class CloneReview(BaseAction):
                 f'AssetVersion where asset_id is {object["asset_version"]["asset_id"]} and is_latest_version is True'
             ).one()
             new_session_object = session.create(
-                "ReviewSessionObject", {"asset_version": latest_version}
+                "ReviewSessionObject", {
+                    "asset_version": latest_version,
+                    "version": f"Version {latest_version['version']}",
+                    "name": latest_version["task"]["name"],
+                    "version_id": latest_version["id"],
+                    "description": object["description"],
+                    "statuses": object["statuses"]
+                }
             )
             new_review_objects.append(new_session_object)
 
@@ -62,11 +69,12 @@ class CloneReview(BaseAction):
         new_list = session.create(
             "ReviewSession",
             {
-                "name": review_name,
+                "name": f"clone of {review_session['name']} @ {review_name}",
                 "project_id": review_session["project_id"],
                 "review_session_invitees": review_session["review_session_invitees"],
                 "review_session_objects": new_review_objects,
                 "settings": review_session["settings"],
+                "description": review_session["description"]
             },
         )
 
