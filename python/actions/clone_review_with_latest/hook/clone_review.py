@@ -42,6 +42,12 @@ class CloneReview(BaseAction):
         """
         return self.validate_selection(entities)
 
+    def get_name(self, latest_version):
+        if latest_version['task'] is None:
+            return latest_version['asset']['name']
+        else:
+            return latest_version['task']['name']
+
     def launch(self, session, entities, event):
         """Return result of running action."""
 
@@ -49,18 +55,20 @@ class CloneReview(BaseAction):
         review_session = session.get(entity_type, entity_id)
         new_review_objects = []
         objects = review_session["review_session_objects"]
-        for object in objects:
+        for review_object in objects:
+
             latest_version = session.query(
-                f'AssetVersion where asset_id is {object["asset_version"]["asset_id"]} and is_latest_version is True'
+                f'AssetVersion where asset_id is {review_object["asset_version"]["asset_id"]} and is_latest_version is True'
             ).one()
+
             new_session_object = session.create(
                 "ReviewSessionObject", {
                     "asset_version": latest_version,
                     "version": f"Version {latest_version['version']}",
-                    "name": latest_version["task"]["name"],
+                    "name": self.get_name(latest_version),
                     "version_id": latest_version["id"],
-                    "description": object["description"],
-                    "statuses": object["statuses"]
+                    "description": review_object["description"],
+                    "statuses": review_object["statuses"]
                 }
             )
             new_review_objects.append(new_session_object)
@@ -69,7 +77,7 @@ class CloneReview(BaseAction):
         new_list = session.create(
             "ReviewSession",
             {
-                "name": f"clone of {review_session['name']} @ {review_name}",
+                "name": f"Clone of {review_session['name']} @ {review_name}",
                 "project_id": review_session["project_id"],
                 "review_session_invitees": review_session["review_session_invitees"],
                 "review_session_objects": new_review_objects,
