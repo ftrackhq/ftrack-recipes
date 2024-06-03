@@ -1,11 +1,9 @@
 # :coding: utf-8
 # :copyright: Copyright (c) 2024 ftrack
 
+import logging
 import ftrack_api
-
 from ftrack_action_handler.action import BaseAction
-
-session = ftrack_api.Session(auto_connect_event_hub=True)
 
 
 class MyWebWidgetAction(BaseAction):
@@ -31,11 +29,26 @@ class MyWebWidgetAction(BaseAction):
             'success': True,
             'message': 'success', # Required
             'type': 'widget',
-            'url': 'http://localhost',
+            'url': 'https://www.example.com',
             'title': 'My Web Widget Action'
         }
 
 
-action_handler = MyWebWidgetAction(session)
-action_handler.register()
-session.event_hub.wait()
+def register(session, **kw):
+    '''Register plugin.'''
+    if not isinstance(session, ftrack_api.Session):
+        return
+
+    action = MyWebWidgetAction(session)
+    action.register()
+
+
+if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO)
+    session = ftrack_api.Session(auto_connect_event_hub=True)
+    register(session)
+
+    session.event_hub.wait()
+
+
+
