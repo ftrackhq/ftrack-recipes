@@ -61,6 +61,15 @@ Runnin the code as standalone is easy as typing:\|
 $ python hook/<action_or_event>.py
 ```
 
+### Run from connect
+
+> [!NOTE]
+> Not all the actions and events can be run from ftrack-connect as it depends on the actions and events dependencies.
+> Running actions from connect is not suggested for production use.
+
+
+Copy the whole folder within the actions or events with name ending with -0.0.0, in the ftrack-connect plugin folder and restart connect.
+
 
 ### Running code in production environments
 
