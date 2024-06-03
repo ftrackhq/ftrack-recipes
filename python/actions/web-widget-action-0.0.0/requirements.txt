@@ -1,0 +1,2 @@
+ftrack-python-api
+ftrack-action-handler
