@@ -60,3 +60,16 @@ Runnin the code as standalone is easy as typing:\|
 ``` bash
 $ python hook/<action_or_event>.py
 ```
+
+
+### Running code in production environments
+
+When in production the actions and events should be monitored in order to ensure they are restarted in case something goes wrong. This can be done in different ways, depending on the type of infrastructure.
+
+## Docker 
+
+A cross platform option is to use our [ftrack-service-example](https://github.com/ftrackhq/ftrack-service-example) to run and monitor them through the container's healthcheck.
+
+## Supervisor
+
+On *NIX platforms is possible to use [supervisor to run these as system daemons](https://arcwiki.rs.gsu.edu/en/ThingsBoard/system-service).
