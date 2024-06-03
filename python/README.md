@@ -63,7 +63,7 @@ $ python hook/<action_or_event>.py
 
 ### Run from connect
 
-> [!NOTE]
+> [!CAUTION]
 > Not all the actions and events can be run from ftrack-connect as it depends on the actions and events dependencies.
 > Running actions from connect is not suggested for production use.
 
