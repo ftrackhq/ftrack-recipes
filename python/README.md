@@ -71,7 +71,7 @@ $ python hook/<action_or_event>.py
 Copy the whole folder within the actions or events with name ending with -0.0.0, in the ftrack-connect plugin folder and restart connect.
 
 
-## Running code in production environments
+## Running in production
 
 When in production the actions and events should be monitored in order to ensure they are restarted in case something goes wrong. This can be done in different ways, depending on the type of infrastructure.
 
