@@ -4,8 +4,7 @@ version = 0.1
 
 [default]
 [default.global.parameters]
-stack_name = "ftrack-change-status-lamda"
-region = "eu-north-1"
+stack_name = "ftrack-change-status-lamda-webhook"
 
 [default.build.parameters]
 cached = true
@@ -18,7 +17,8 @@ lint = true
 capabilities = "CAPABILITY_IAM"
 confirm_changeset = true
 resolve_s3 = true
-s3_prefix = "sd-ftrack-webhook"
+s3_prefix = "ftrack-change-status-lamda-webhook"
+image_repositories = []
 
 
 [default.sync.parameters]

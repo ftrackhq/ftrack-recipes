@@ -9,13 +9,13 @@ Description: >
 Parameters:
   FtrackServer:
     Type: String
-    Default: https://XXXXX.ftrackapp.com/
+    Default: https://<MyCompanyName>.ftrackapp.com/
   FtrackApiKey:
     Type: String
-    Default: XXXXX
+    Default: <User or global API Key>
   FtrackApiUser:
     Type: String
-    Default: XXXXX
+    Default: <Your ftrack Login User>
 
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
