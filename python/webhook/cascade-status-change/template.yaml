@@ -9,13 +9,13 @@ Description: >
 Parameters:
   FtrackServer:
     Type: String
-    Default: https://beta-efesto-lab.ftrackapp.com/
+    Default: https://XXXXX.ftrackapp.com/
   FtrackApiKey:
     Type: String
-    Default: ZDIyOTZkZjEtOTJjMi00N2RjLWIzMjYtNzc2ODQ4YjZmY2QzOjowNDIyYzYyYy01OWUxLTRjYjQtOTI5Ni1jMmIyZWE4OWMwOTQ
+    Default: XXXXX
   FtrackApiUser:
     Type: String
-    Default: lorenzo
+    Default: XXXXX
 
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
