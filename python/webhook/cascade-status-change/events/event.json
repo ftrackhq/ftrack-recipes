@@ -1,0 +1,62 @@
+{
+  "body": "{\"id\":\"259e0537-aa8e-4b54-9ba1-5ead3cb4b115\",\"metadata\":{\"date\":\"2024-06-04T10:31:39.554607+00:00\",\"resource_id\":\"bcdf57b0-acc6-11e1-a554-f23c91df1211\",\"server_url\":\"https://beta-efesto-lab.ftrackapp.com/\",\"configuration_hash\":\"4b6c1c0dd5f0e4ced5549cf42c3089aed8f5e0817d4ca5f3847e614e8d9053b0\"},\"fez_id\":\"ftrack_entity_event_v1\",\"entity\":{\"id\":[\"e767fa5f-bb3a-4bee-a479-401526da0809\"],\"entity_type\":\"Task\",\"operation\":\"update\",\"new\":{\"object_type_id\":\"11c137c0-ee7e-4f9c-91c5-8c77cec22b2c\",\"priority_id\":\"9661b320-3a0c-11e2-81c1-0800200c9a66\",\"id\":\"e767fa5f-bb3a-4bee-a479-401526da0809\",\"bid\":0,\"description\":\"\",\"start_date\":null,\"end_date\":null,\"status_id\":\"44ddd0fe-4164-11df-9218-0019bb4983d8\",\"type_id\":\"08c534f2-8f7b-11e5-a0cf-04013398c801\",\"project_id\":\"258715cc-4bfd-4a6d-84ce-c4c9b5064566\",\"sort\":0,\"context_type\":\"task\",\"name\":\"Taskname3\",\"parent_id\":\"301f6e5f-c5de-48d4-aa9f-c814905b28d6\",\"thumbnail_id\":null},\"old\":{\"object_type_id\":\"11c137c0-ee7e-4f9c-91c5-8c77cec22b2c\",\"priority_id\":\"9661b320-3a0c-11e2-81c1-0800200c9a66\",\"id\":\"e767fa5f-bb3a-4bee-a479-401526da0809\",\"bid\":0,\"description\":\"\",\"start_date\":null,\"end_date\":null,\"status_id\":\"44dded64-4164-11df-9218-0019bb4983d8\",\"type_id\":\"08c534f2-8f7b-11e5-a0cf-04013398c801\",\"project_id\":\"258715cc-4bfd-4a6d-84ce-c4c9b5064566\",\"sort\":0,\"context_type\":\"task\",\"name\":\"Taskname3\",\"parent_id\":\"301f6e5f-c5de-48d4-aa9f-c814905b28d6\",\"thumbnail_id\":null}}}",
+  "resource": "/status_change",
+  "path": "/status_change",
+  "httpMethod": "POST",
+  "isBase64Encoded": false,
+  "queryStringParameters": {
+    "foo": "bar"
+  },
+  "pathParameters": {
+    "proxy": "/path/to/resource"
+  },
+  "stageVariables": {
+    "baz": "qux"
+  },
+  "headers": {
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+    "Accept-Encoding": "gzip, deflate, sdch",
+    "Accept-Language": "en-US,en;q=0.8",
+    "Cache-Control": "max-age=0",
+    "CloudFront-Forwarded-Proto": "https",
+    "CloudFront-Is-Desktop-Viewer": "true",
+    "CloudFront-Is-Mobile-Viewer": "false",
+    "CloudFront-Is-SmartTV-Viewer": "false",
+    "CloudFront-Is-Tablet-Viewer": "false",
+    "CloudFront-Viewer-Country": "US",
+    "Host": "1234567890.execute-api.us-east-1.amazonaws.com",
+    "Upgrade-Insecure-Requests": "1",
+    "User-Agent": "Custom User Agent String",
+    "Via": "1.1 08f323deadbeefa7af34d5feb414ce27.cloudfront.net (CloudFront)",
+    "X-Amz-Cf-Id": "cDehVQoZnx43VYQb9j2-nvCh-9z396Uhbp027Y2JvkCPNLmGJHqlaA==",
+    "X-Forwarded-For": "127.0.0.1, 127.0.0.2",
+    "X-Forwarded-Port": "443",
+    "X-Forwarded-Proto": "https"
+  },
+  "requestContext": {
+    "accountId": "123456789012",
+    "resourceId": "123456",
+    "stage": "prod",
+    "requestId": "c6af9ac6-7b61-11e6-9a41-93e8deadbeef",
+    "requestTime": "09/Apr/2015:12:34:56 +0000",
+    "requestTimeEpoch": 1428582896000,
+    "identity": {
+      "cognitoIdentityPoolId": null,
+      "accountId": null,
+      "cognitoIdentityId": null,
+      "caller": null,
+      "accessKey": null,
+      "sourceIp": "127.0.0.1",
+      "cognitoAuthenticationType": null,
+      "cognitoAuthenticationProvider": null,
+      "userArn": null,
+      "userAgent": "Custom User Agent String",
+      "user": null
+    },
+    "path": "/prod/hello",
+    "resourcePath": "/hello",
+    "httpMethod": "POST",
+    "apiId": "1234567890",
+    "protocol": "HTTP/1.1"
+  }
+}
