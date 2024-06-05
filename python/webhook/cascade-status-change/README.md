@@ -31,4 +31,12 @@ Value               https://xxxxxxxxx.execute-api.eu-north-1.amazonaws.com/Prod/
 * **Disable rollback**  (can be left as default): Set to **No**
 * **StatusChangeFunction has no authentication. Is this okay?**  (required): Set to **Yes**
 
+## ftrack setup
 
+Once the lambda is deployed 
+* Go to your **ftrack instance** &rarr; **Settings** &rarr; **Advanced** &rarr; **WebHooks**
+* Click : **Add Webhook**
+* Give the webhook a unique **Name**
+* Set the **Endpoint URL** to the output value of the deployment  (eg: https://xxxxxxxxx.execute-api.eu-north-1.amazonaws.com/Prod/status_change/)
+* Set the **Select Event** for **Task** with **Any Update**
+* Click : **Save Changes**
