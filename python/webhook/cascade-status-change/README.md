@@ -4,6 +4,10 @@ This recipe ports the logic of the [cascade-status-change event](https://github.
 
 ## requirements
 
+* An amazon account setup.
+* [SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html)
+* Docker
+
 ## deployment
 To deploy the lambda on Amazon run:
 
