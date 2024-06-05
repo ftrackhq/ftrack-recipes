@@ -17,7 +17,6 @@ Parameters:
     Type: String
     Default: <Your ftrack Login User>
 
-# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
     Timeout: 3
@@ -26,7 +25,7 @@ Globals:
 
 Resources:
   StatusChangeFunction:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Type: AWS::Serverless::Function
     Properties:
       CodeUri: status_change/
       Handler: app.lambda_handler
@@ -35,7 +34,7 @@ Resources:
         - x86_64
       Events:
         StatusChange:
-          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Type: Api
           Properties:
             Path: /status_change
             Method: post
@@ -50,15 +49,6 @@ Resources:
         ProvisionedConcurrentExecutions: 3
 
 Outputs:
-  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
-  # Find out more about other implicit resources you can reference within SAM
-  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
   StatusChangeApi:
     Description: "API Gateway endpoint URL for Prod stage for Status Change function"
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/status_change/"
-  StatusChangeFunction:
-    Description: "Hello World Lambda Function ARN"
-    Value: !GetAtt StatusChangeFunction.Arn
-  StatusChangeFunctionIamRole:
-    Description: "Implicit IAM Role created for Hello World function"
-    Value: !GetAtt StatusChangeFunctionRole.Arn
