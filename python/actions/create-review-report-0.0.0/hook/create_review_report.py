@@ -26,9 +26,9 @@ class CreateReportAction(BaseAction):
         return self._session
 
     @property
-    def ftrack_review_location(self):
-        '''Return the ftrack.review location.'''
-        return self.session.query("Location where name is 'ftrack.review'").one()
+    def ftrack_server_location(self):
+        '''Return the ftrack.server location.'''
+        return self.session.query("Location where name is 'ftrack.server'").one()
 
     def validate_selection(self, entities):
         '''Return True if the selection is valid.
@@ -116,8 +116,9 @@ class CreateReportAction(BaseAction):
             {
                 'user': self.session.get('User', user_id),
                 'status': 'running',
+                'type': 'api_job',
                 'data': json.dumps(
-                    {'description': str('Project Report Export (click to download)')}
+                    {'description': str('Review Report Export (click to download)')}
                 ),
             },
         )
@@ -129,8 +130,12 @@ class CreateReportAction(BaseAction):
 
         review_session_name = f"Review : {review_session['name']} \nProject: {review_session['project']['name']}"
 
+        # https://py-pdf.github.io/fpdf2/Tutorial.html#tuto-1-minimal-example
         pdf = FPDF()
-        pdf.set_author(self.session.api_user)
+        pdf.add_page()
+        pdf.set_font("helvetica", "", 12)
+        pdf.set_author(str(self.session.api_user))
+        pdf.set_creator(str(self.session.api_user))
         pdf.set_title(review_session_name)
 
         # Write versions data into cells.
@@ -138,28 +143,21 @@ class CreateReportAction(BaseAction):
         for i, review_session_object in enumerate(review_session_objects):
 
             annotations = review_session_object['annotations']
-            print(annotations)
-
             description = review_session_object['description']
-            print(description)
+            asset_version = review_session_object['asset_version']
+            asset_thumbnail_url = asset_version['thumbnail_url']
+            review_version = review_session_object['version']
+            review_status = review_session_object['statuses']
 
-            asset_version = review_session_objects['asset_version']
-            print(asset_version)
-
-            review_version = review_session_objects['version']
-            print(review_version)
-
-            review_status = review_session_objects['statuses']
-            print(review_status)
+            pdf.cell(0, 10, f"Printing line number {i}", new_x="LMARGIN", new_y="NEXT")
+            # pdf.image(asset_thumbnail_url, link=asset_thumbnail_url)
 
             for annotation in annotations:
-                print(annotation)
                 frame_number = annotation['frame_number']
                 data = annotation['data']
                 created_at = annotation['created_at']
                 print(data)
 
-        print(file_path)
         pdf.output(file_path)
 
 
