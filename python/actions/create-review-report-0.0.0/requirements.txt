@@ -1,0 +1,3 @@
+fpdf2
+ftrack_python_api
+ftrack_action_handler
