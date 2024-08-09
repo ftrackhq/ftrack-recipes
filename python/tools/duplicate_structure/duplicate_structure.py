@@ -11,7 +11,30 @@ import ftrack_api.attribute
 
 logging.basicConfig()
 
+# Setting `auto_populate` to False to not fetch more data than necessary in
+# queries. Since we (likely) will be dealing with large structures of data, and
+# we won't be copying *all* attributes, a way to keep the number of requests to
+# the server/database down is to turn off auto-population and manually fetch the
+# data that we want to duplicate.
 session = ftrack_api.Session(auto_populate=False)
+
+
+def parse_arguments():
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        'source_entity_id',
+        help=('ID of source entity (root) to duplicate.')
+    )
+    parser.add_argument(
+        'destination_entity_id',
+        help=(
+            'ID of destination entity where to parent the duplicate '
+            'structure under.'
+        )
+    )
+
+    return parser.parse_args()
 
 
 class DuplicateStructure(object):
@@ -19,19 +42,17 @@ class DuplicateStructure(object):
         self.logger = logging.getLogger('com.ftrack.recipes.tools.duplicate_structure')
         self.logger.setLevel(logging.INFO)
 
-        self.parser = self.args = None
-        self.parse_arguments()
-
         self._dry_run = False
         if self._dry_run:
             self.logger.info(
                 'Dry run mode enabled, nothing will be persisted to server.'
             )
-        
+    
+    def process(self, source_entity_id, destination_entity_id):
         self._pre_actions()
 
-        self._source_entity_id = self.args.source_entity_id
-        self._destination_entity_id = self.args.destination_entity_id
+        self._source_entity_id = source_entity_id
+        self._destination_entity_id = destination_entity_id
         self._ignore_data_keys = [
             'project_id', 'ancestors', 'descendants', 'lists',
             'incoming_links', 'outgoing_links', 'status_changes',
@@ -45,24 +66,7 @@ class DuplicateStructure(object):
 
         self._run()
         self._post_actions()
-    
-    def parse_arguments(self):
-        self.parser = argparse.ArgumentParser()
 
-        self.parser.add_argument(
-            'source_entity_id',
-            help=('ID of source entity (root) to duplicate.')
-        )
-        self.parser.add_argument(
-            'destination_entity_id',
-            help=(
-                'ID of destination entity where to parent the duplicate '
-                'structure under.'
-            )
-        )
-
-        self.args = self.parser.parse_args()
-    
     def _create_entity_lookup(self):
         self.logger.debug('Creating entity lookup dictionary...')
         entities_lookup = {}
@@ -256,4 +260,6 @@ class DuplicateStructure(object):
 
 
 if __name__ == '__main__':
-    DuplicateStructure()
+    args = parse_arguments()
+    duplicate_structure = DuplicateStructure()
+    duplicate_structure.process(args.source_entity_id, args.destination_entity_id)
