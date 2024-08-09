@@ -2,26 +2,25 @@
 # :copyright: Copyright (c) 2024 Backlight
 
 import logging
-import ftrack_api
+import argparse
 import itertools
 import time
 
+import ftrack_api
 import ftrack_api.attribute
 
 logging.basicConfig()
 
-session = ftrack_api.Session(
-    server_url='',
-    api_key='',
-    api_user='',
-    auto_populate=False
-)
+session = ftrack_api.Session(auto_populate=False)
 
 
-class DuplicateStructure:
-    def __init__(self, source_entity_id, destination_entity_id):
+class DuplicateStructure(object):
+    def __init__(self):
         self.logger = logging.getLogger('com.ftrack.recipes.tools.duplicate_structure')
         self.logger.setLevel(logging.INFO)
+
+        self.parser = self.args = None
+        self.parse_arguments()
 
         self._dry_run = False
         if self._dry_run:
@@ -31,8 +30,8 @@ class DuplicateStructure:
         
         self._pre_actions()
 
-        self._source_entity_id = source_entity_id
-        self._destination_entity_id = destination_entity_id
+        self._source_entity_id = self.args.source_entity_id
+        self._destination_entity_id = self.args.destination_entity_id
         self._ignore_data_keys = [
             'project_id', 'ancestors', 'descendants', 'lists',
             'incoming_links', 'outgoing_links', 'status_changes',
@@ -46,6 +45,23 @@ class DuplicateStructure:
 
         self._run()
         self._post_actions()
+    
+    def parse_arguments(self):
+        self.parser = argparse.ArgumentParser()
+
+        self.parser.add_argument(
+            'source_entity_id',
+            help=('ID of source entity (root) to duplicate.')
+        )
+        self.parser.add_argument(
+            'destination_entity_id',
+            help=(
+                'ID of destination entity where to parent the duplicate '
+                'structure under.'
+            )
+        )
+
+        self.args = self.parser.parse_args()
     
     def _create_entity_lookup(self):
         self.logger.debug('Creating entity lookup dictionary...')
@@ -239,7 +255,5 @@ class DuplicateStructure:
         self._populate_entities()
 
 
-structure = DuplicateStructure(
-    source_entity_id='',
-    destination_entity_id=''
-)
+if __name__ == '__main__':
+    DuplicateStructure()
