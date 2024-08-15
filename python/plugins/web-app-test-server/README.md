@@ -1,4 +1,4 @@
-# sd-web-app-test-server
+# web-app-test-server
 A plugin for ftrack Connect that spins up a web server for testing of web apps.
 Please note that this plugin is for testing purposes only (not for production
 use).

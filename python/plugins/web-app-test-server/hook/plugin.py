@@ -6,6 +6,8 @@ import threading
 import os
 import sys
 
+logger = logging.getLogger()
+
 DEPENDENCIES_DIRECTORY = os.path.abspath(
     os.path.join(
         os.path.dirname(__file__), '../dependencies'
@@ -30,7 +32,6 @@ def start_server():
     waitress.serve(app, port=8080)
 
 def start_wsgi_server_thread():
-    logger = logging.getLogger()
     logger.info('Starting server...')
     thread = threading.Thread(target=start_server)
     thread.daemon = True
@@ -40,4 +41,7 @@ def register(session, **kw):
     if not isinstance(session, ftrack_api.session.Session):
         return
     
-    start_wsgi_server_thread()
+    try:
+        start_wsgi_server_thread()
+    except Exception as e:
+        logger.error('Failed to start server.')
