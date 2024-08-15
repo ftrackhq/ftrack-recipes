@@ -4,6 +4,7 @@
 import logging
 import os
 import sys
+import re
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('ftrack-connect-web-app-test-server')
@@ -23,7 +24,8 @@ app = Flask(__name__)
 def serve_static(webapp, filename):
     base_path = os.path.dirname(os.path.realpath(__file__))
     full_path = os.path.join(base_path, "static", webapp)
-    return send_from_directory(full_path, filename)
+    unsanitized_path = re.sub('%2e', '.', full_path)
+    return send_from_directory(unsanitized_path, filename)
 
 @app.route("/")
 def main_page():
