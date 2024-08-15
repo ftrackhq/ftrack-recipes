@@ -24,8 +24,8 @@ app = Flask(__name__)
 def serve_static(webapp, filename):
     base_path = os.path.dirname(os.path.realpath(__file__))
     full_path = os.path.join(base_path, "static", webapp)
-    unsanitized_path = re.sub('%2e', '.', full_path)
-    return send_from_directory(unsanitized_path, filename)
+    sanitized_path = re.sub('%2e', '.', full_path)
+    return send_from_directory(sanitized_path, filename)
 
 @app.route("/")
 def main_page():
