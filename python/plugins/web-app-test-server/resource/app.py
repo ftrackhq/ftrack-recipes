@@ -21,7 +21,9 @@ app = Flask(__name__)
 @app.route("/webapps/<path:webapp>", defaults={'filename': 'index.html'})
 @app.route("/webapps/<path:webapp>/<path:filename>")
 def serve_static(webapp, filename):
-    return send_from_directory(f"static/{webapp}/", filename)
+    base_path = os.path.dirname(os.path.realpath(__file__))
+    full_path = os.path.join(base_path, "static", webapp)
+    return send_from_directory(full_path, filename)
 
 @app.route("/")
 def main_page():
