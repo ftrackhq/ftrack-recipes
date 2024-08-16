@@ -5,6 +5,7 @@ import logging
 import argparse
 import itertools
 import time
+from uuid import UUID
 
 import ftrack_api
 import ftrack_api.attribute
@@ -36,6 +37,13 @@ def parse_arguments():
 
     return parser.parse_args()
 
+def validate_args(args):
+    try:
+        UUID(args.source_entity_id)
+        UUID(args.destination_entity_id)
+        return True
+    except Exception:
+        return False
 
 class DuplicateStructure(object):
     def __init__(self):
@@ -261,5 +269,9 @@ class DuplicateStructure(object):
 
 if __name__ == '__main__':
     args = parse_arguments()
+
+    if not validate_args(args):
+        print('Invalid UUIDs provided.')
+
     duplicate_structure = DuplicateStructure()
     duplicate_structure.process(args.source_entity_id, args.destination_entity_id)
