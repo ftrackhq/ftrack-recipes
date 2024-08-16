@@ -5,7 +5,7 @@ import logging
 import argparse
 import itertools
 import time
-from uuid import UUID
+import re
 
 import ftrack_api
 import ftrack_api.attribute
@@ -38,10 +38,11 @@ def parse_arguments():
     return parser.parse_args()
 
 def validate_args(args):
+    uuid4hex = re.compile('^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}\Z', re.I)
     try:
-        UUID(args.source_entity_id)
-        UUID(args.destination_entity_id)
-        return True
+        match1 = uuid4hex.match(args.source_entity_id)
+        match2 = uuid4hex.match(args.destination_entity_id)
+        return (match1 and match2)
     except Exception:
         return False
 
@@ -271,7 +272,7 @@ if __name__ == '__main__':
     args = parse_arguments()
 
     if not validate_args(args):
-        print('Invalid UUIDs provided.')
+        print('At least one of the UUIDs is invalid.')
 
     duplicate_structure = DuplicateStructure()
     duplicate_structure.process(args.source_entity_id, args.destination_entity_id)
