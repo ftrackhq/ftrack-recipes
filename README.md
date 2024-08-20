@@ -17,4 +17,4 @@ $ git clone git@github.com/ftrackhq/ftrack-recipes.git
 ```
 
 Go in the folder of the example you are interesed in and check the
-instructions in the **README.rst** file.
+instructions in the **README.md** file.
