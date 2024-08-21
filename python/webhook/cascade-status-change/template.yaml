@@ -44,10 +44,7 @@ Resources:
           FTRACK_SERVER: !Ref FtrackServer
           FTRACK_API_KEY: !Ref FtrackApiKey
           FTRACK_API_USER: !Ref FtrackApiUser
-      AutoPublishAlias: live
-      ProvisionedConcurrencyConfig:
-        ProvisionedConcurrentExecutions: 3
-
+          
 Outputs:
   StatusChangeApi:
     Description: "API Gateway endpoint URL for Prod stage for Status Change function"
