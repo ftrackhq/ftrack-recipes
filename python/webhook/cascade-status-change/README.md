@@ -8,12 +8,23 @@ This recipe ports the logic of the [cascade-status-change event](https://github.
 * [SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html)
 * Docker
 
+
+## building
+to build the lambda code run:
+
+```bash
+sam build
+```
+
+
 ## deployment
 To deploy the lambda on Amazon run:
 
 ```bash
 sam deploy --guided
 ```
+
+and follow the instructions to pass the required credentials.
 
 Once done, you'll find the URL of the lambda as **value** of the cloud formation output:
 
