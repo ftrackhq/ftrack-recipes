@@ -6,7 +6,6 @@ This recipe ports the logic of the [cascade-status-change event](https://github.
 
 * An amazon account setup.
 * [SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html)
-* Docker
 
 
 ## building
