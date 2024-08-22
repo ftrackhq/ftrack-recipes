@@ -12,11 +12,12 @@ import logging
 logger = logging.getLogger()
 logger.setLevel("INFO")
 
+ALLOWED_STATES = ('BLOCKED', 'DONE', 'IN_PROGRESS', 'NOT_STARTED')
+
 SUCCESS_RESPONSE = {
     "statusCode": 200,
     "body": json.dumps({
         "message": "SUCCESS",
-        # "location": ip.text.replace("\n", "")
     }),
 }
 
@@ -24,8 +25,7 @@ SUCCESS_RESPONSE = {
 ERROR_RESPONSE = {
     "statusCode": 400,
     "body": json.dumps({
-        "error": "OPS",
-        # "location": ip.text.replace("\n", "")
+        "error": "An error occurred during the lambda execution. Please check logs",
     }),
 }
 
@@ -46,7 +46,7 @@ def send_message_to_user(session, user_id):
                     'cascade_status_changes: ' 'Shot status updated automatically'
                 ),
             ),
-            target='applicationId=ftrack.client.web and user.id="{0}"'.format(user_id),
+            target=f'applicationId=ftrack.client.web and user.id="{user_id}"'
         ),
         on_error='ignore',
     )
@@ -62,9 +62,7 @@ def get_status_by_state(project, state):
             return status
 
     raise ValueError(
-        'No valid Shot status matching state {} for project {}'.format(
-            state, project['full_name']
-        )
+        f'No valid Shot status matching state {state} for project { project["full_name"]}'
     )
 
 
@@ -80,12 +78,13 @@ def get_state_name(task):
     try:
         state = task['status']['state']['short']
     except KeyError:
+        task_identity = ftrack_api.inspection.identity(task)
         logger.info(
-            'Child {} has no status'.format(ftrack_api.inspection.identity(task))
+            f'Child {task_identity} has no status'
         )
         return
-    if state not in ('BLOCKED', 'DONE', 'IN_PROGRESS', 'NOT_STARTED'):
-        logger.warning('Unknown state returned: {}'.format(state))
+    if state not in ALLOWED_STATES:
+        logger.warning(f'Unknown state returned: {state}')
         return
     return state
 
@@ -96,7 +95,7 @@ def get_new_shot_status(shot, tasks):
     Given a *shot* and a list of *tasks* belonging to that shot, determine
     the shots' status based on the task status'.
     '''
-    logger.info('Current shot status: {}'.format(shot['status']['name']))
+    logger.info(f'Current shot status: {shot["status"]["name"]}')
 
     task_states = set(
         [get_state_name(task) for task in tasks],
@@ -129,23 +128,30 @@ def cascade_status_changes_event_listener(session, event):
     status_changed = False
     if not is_status_change(event):
         return ERROR_RESPONSE
+    
     entity_id = event['entity']['id'][0]
     logger.info(f'entity_id : {entity_id}')
+    
     shot_query = f'select status_id, status.name from Shot where children any (id is "{entity_id}")'
     logger.info(f'shot_query: {shot_query}')
+
     shot = session.query(shot_query).first()
     logger.info(f'shot : {shot}')
+
     if shot:
+        shot_id = shot['id']
         tasks = session.query(
             'select type.name, status.state.short from Task '
-            'where parent_id is "{}"'.format(shot['id'])
+            f'where parent_id is "{shot_id}"'
         )
         new_shot_status_id = get_new_shot_status(shot, tasks)
         if shot['status_id'] == new_shot_status_id:
             logger.info('Status is unchanged.')
             return ERROR_RESPONSE
+        
         if new_shot_status_id is None:
             return ERROR_RESPONSE
+        
         shot['status_id'] = new_shot_status_id
         logger.info(f'Status has been updated to id : {new_shot_status_id}')
 
@@ -156,6 +162,7 @@ def cascade_status_changes_event_listener(session, event):
 
     if not status_changed:
         return ERROR_RESPONSE
+    
     # Persist changes
     try:
         session.commit()
