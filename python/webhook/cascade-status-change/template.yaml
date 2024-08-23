@@ -1,0 +1,51 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  ftrack-change-status-lamda
+
+  Sample SAM Template for ftrack-change-status-lamda
+
+
+Parameters:
+  FtrackServer:
+    Type: String
+    Default: https://<MyCompanyName>.ftrackapp.com/
+  FtrackApiKey:
+    Type: String
+    Default: <User or global API Key>
+  FtrackApiUser:
+    Type: String
+    Default: <Your ftrack Login User>
+
+Globals:
+  Function:
+    Timeout: 3
+    MemorySize: 128
+
+
+Resources:
+  StatusChangeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: status_change/
+      Handler: app.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Events:
+        StatusChange:
+          Type: Api
+          Properties:
+            Path: /status_change
+            Method: post
+
+      Environment:
+        Variables:
+          FTRACK_SERVER: !Ref FtrackServer
+          FTRACK_API_KEY: !Ref FtrackApiKey
+          FTRACK_API_USER: !Ref FtrackApiUser
+          
+Outputs:
+  StatusChangeApi:
+    Description: "API Gateway endpoint URL for Prod stage for Status Change function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/status_change/"
