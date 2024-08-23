@@ -66,8 +66,8 @@ def get_status_by_state(project, state):
     )
 
 
-def is_status_change(event):
-    '''Return if updated *entity* is a status change.'''
+def task_changed(event):
+    '''Return if updated *entity* is a Task update.'''
     is_task_entity = event['entity']['entity_type'] == 'Task'
     is_add_update = event['entity']['operation'] == 'update'
     return is_task_entity and is_add_update
@@ -126,7 +126,7 @@ def cascade_status_changes_event_listener(session, event):
     user_id = event['metadata']['resource_id']
 
     status_changed = False
-    if not is_status_change(event):
+    if not task_changed(event):
         return ERROR_RESPONSE
     
     entity_id = event['entity']['id'][0]
