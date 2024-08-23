@@ -48,9 +48,9 @@ Value               https://xxxxxxxxx.execute-api.eu-north-1.amazonaws.com/Prod/
 ## ftrack setup
 
 Once the lambda is deployed 
-* Go to your **ftrack instance** &rarr; **Settings** &rarr; **Advanced** &rarr; **WebHooks**
+* Go to your **ftrack instance** &rarr; **System settings** &rarr; **Advanced** &rarr; **Webhooks**
 * Click : **Add Webhook**
 * Give the webhook a unique **Name**
 * Set the **Endpoint URL** to the output value of the deployment  (eg: https://xxxxxxxxx.execute-api.eu-north-1.amazonaws.com/Prod/status_change/)
-* Set the **Select Event** for **Task** with **Any Update**
-* Click : **Save Changes**
+* Set the **Select Events** for **Task** with **Update on** > **status_id**
+* Click : **Create Webhook**
