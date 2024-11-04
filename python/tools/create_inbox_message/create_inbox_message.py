@@ -9,7 +9,13 @@ logger = logging.getLogger()
 
 session = ftrack_api.Session()
 
-recipients_user_names = ['<username>']
+# List of recipients. Picks a random user for demo purposes.
+recipients_user_names = [
+    session.query(
+        f'User where username is_not {session.api_user}'
+    ).first().get('username')
+]
+logger.info(f'Recipients: {recipients_user_names}')
 message_content = 'Example message content from recipe'
 
 # Query author and recipients. Note that the message will not appear if the
