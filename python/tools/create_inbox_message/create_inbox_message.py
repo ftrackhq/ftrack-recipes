@@ -17,7 +17,7 @@ message_content = 'Example message content from recipe'
 logger.info('Getting author and recipients...')
 author = session.query(f"User where username is {session.api_user}").one()
 recipients = session.query(
-    "User where username in ('{}')".format("','".join(recipients_user_names))
+    f"""User where username in ('{"','".join(recipients_user_names)}')"""
 ).all()
 
 # Create note / "internal email"
