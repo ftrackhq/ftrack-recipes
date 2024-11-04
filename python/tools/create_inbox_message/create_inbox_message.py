@@ -10,7 +10,7 @@ logger = logging.getLogger()
 session = ftrack_api.Session()
 
 recipients_user_names = ['<username>']
-message_content = 'Message body'
+message_content = 'Example message content from recipe'
 
 # Query author and recipients. Note that the message will not appear if the
 # author and recipient is the same user.
